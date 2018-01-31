@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">MovieApp</string>
+    <string name="search_text">Movie name</string>
+    <string name="search_hint">E.g: Batman</string>
+    <string name="submit_text">Submit</string>
+    <string name="movie_name">Movie Title</string>
+    <string name="release_date">Released Date:</string>
+    <string name="budget">Budget:</string>
+    <string name="runtime">Runtime:</string>
+    <string name="status">Status:</string>
+    <string name="overview">Plot:</string>
+    <string name="tag">Tag:</string>
+    <string name="genre">Category:</string>
+    <string name="title_activity_main">MainActivity</string>
+
+</resources>
