@@ -17,6 +17,7 @@ public class MovieDetails {
     private String poster;
     @SerializedName("genres")
     @Expose
+    // TODO: 1/31/18 Хорошим тоном рахується такі об'єкти ініціалізувати пустими.
     private List<MovieGenre> genres;
     @SerializedName("budget")
     @Expose

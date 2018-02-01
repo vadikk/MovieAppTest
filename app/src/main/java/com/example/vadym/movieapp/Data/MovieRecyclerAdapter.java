@@ -61,12 +61,12 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = movieList.get(position);
-
+        // TODO: 1/31/18 Таким форматуванням погано писати.
         if(movie==null)
             return;
 
         holder.setMovie(movie);
-
+        // TODO: 1/31/18 Підсвічує студія про лямбди.
         holder.itemView.setOnClickListener((v)->{
             onMovieClick(holder.getAdapterPosition());
         });

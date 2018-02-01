@@ -1,20 +1,15 @@
 package com.example.vadym.movieapp.Activities;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import com.example.vadym.movieapp.Api.MovieRetrofit;
 import com.example.vadym.movieapp.Data.MovieRecyclerAdapter;
@@ -24,8 +19,12 @@ import com.example.vadym.movieapp.R;
 
 import java.util.List;
 
-public class MovieListActivity extends AppCompatActivity implements OnMovieClickListener {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
+public class MovieListActivity extends AppCompatActivity implements OnMovieClickListener {
+    // TODO: 1/31/18 Нема ButterKnife.
     private RecyclerView recyclerView;
     private MovieRecyclerAdapter adapter;
     private String searchText;
@@ -84,7 +83,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
                 int lastVisibleItemCount = manager.findLastVisibleItemPosition();
                 int allLoadedItemsCount = adapter.getItemCount();
                 int loadShouldStartPosition = (int)(allLoadedItemsCount*0.8);
-
+                // TODO: 1/31/18 Нема форматування.
                 if(loadShouldStartPosition<=lastVisibleItemCount && allLoadedItemsCount<total){
                     page++;
                     isLoading = true;
@@ -98,6 +97,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
     }
 
     private void loadMoreData(String searchText, int page){
+        // TODO: 1/31/18 Навіщо ти це залишив? Ти не розумєш, що робиться ця функція? Для тебе не було нічого дивного, що апа довго шукає фільм?
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -124,7 +124,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
                     adapter.addAll(movies);
                     isLoading = false;
 
-
+                    // TODO: 1/31/18 Також дурня, я це робив для того, щоб прогрес бар більше часу світився, бо він швидко пропадав. А ти не спитав навіь навіщо це.
                     bar.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -136,7 +136,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
 
             @Override
             public void onFailure(Call<MovieResponce> call, Throwable t) {
-
+                // TODO: 1/31/18 Нема обпрацюванян помилки.
             }
         });
 
@@ -144,6 +144,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
 
     @Override
     public void onMovieClick(int position) {
+        // TODO: 1/31/18 Нема форматування.
         Intent intent = new Intent(MovieListActivity.this,MovieDetailsActivity.class);
         intent.putExtra("detail", adapter.getMovie(position));
         startActivity(intent);

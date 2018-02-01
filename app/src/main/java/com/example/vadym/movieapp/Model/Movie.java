@@ -13,6 +13,7 @@ public class Movie implements Serializable {
 
     @SerializedName("id")
     @Expose
+    // TODO: 1/31/18 Я знаю, що ти юзав для цього сервіс, але навіщо тут ця анотація? Ти прочитав її значення?
     private String id;
     @SerializedName("title")
     @Expose

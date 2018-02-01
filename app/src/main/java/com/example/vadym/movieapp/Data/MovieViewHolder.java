@@ -22,7 +22,7 @@ public class MovieViewHolder extends RecyclerView.ViewHolder {
 
     public MovieViewHolder(View itemView) {
         super(itemView);
-
+        //Redundant casting.
         title = (TextView) itemView.findViewById(R.id.movieTitleID);
         imageView = (ImageView) itemView.findViewById(R.id.movieImageID);
     }

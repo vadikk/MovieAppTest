@@ -1,6 +1,5 @@
 package com.example.vadym.movieapp.Model;
 
-import com.example.vadym.movieapp.Model.Movie;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -9,7 +8,7 @@ import java.util.List;
 /**
  * Created by Vadym on 29.01.2018.
  */
-
+// TODO: 1/31/18 Підсвічено IDE.
 public class MovieResponce {
 
     @SerializedName("page")
@@ -17,12 +16,14 @@ public class MovieResponce {
     private String page;
     @SerializedName("total_results")
     @Expose
+    // TODO: 1/31/18 Підсвічено IDE.
     private String total_results;
     @SerializedName("total_pages")
     @Expose
     private String total_pages;
     @SerializedName("results")
     @Expose
+    // TODO: 1/31/18 Хорошим тоном рахується не писати серіалізацію для тих полів, які мають однакову назву з полями респонса.
     private List<Movie> results;
 
     public String getPage() {

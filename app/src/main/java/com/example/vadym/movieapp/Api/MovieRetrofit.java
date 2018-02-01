@@ -9,13 +9,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MovieRetrofit {
 
-    public static MovieApi getRetrofit(){
+    public static MovieApi getRetrofit() {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.themoviedb.org/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
+        // TODO: 1/31/18  Тобі ж студія підсвічує - наведи курсор і глянь, чого вона тут підсвічує.
         MovieApi api = retrofit.create(MovieApi.class);
         return api;
     }

@@ -1,7 +1,7 @@
 package com.example.vadym.movieapp.Activities;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,8 +41,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
         setUI();
 
         Bundle bundle = getIntent().getExtras();
+        // TODO: 1/31/18 Нема форматування.
         if(bundle!=null){
             movie = (Movie) bundle.getSerializable("detail");
+            // TODO: 1/31/18 Якщо тут не буде об'єета - відбудеться креш, тобі ж студія підсвічує, чого не читаєш?
             movieId = movie.getId();
         }
 
@@ -50,7 +52,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void setUI(){
-
+        // TODO: 1/31/18 Redundant casting.
         imageView = (ImageView) findViewById(R.id.movieImageDetail);
         title = (TextView) findViewById(R.id.movieTitleDetail);
         releasedDate = (TextView) findViewById(R.id.movieReleaseDetail);
@@ -74,6 +76,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                     List<MovieDetails.MovieGenre> genres = movieDetails.getGenres();
                     StringBuilder categories = new StringBuilder();
 
+                    // TODO: 1/31/18 Костиль, а ще при 1 елементі буде "Action, Action"
                     for (int i=0;i<genres.size();i++){
                         categories.append(genres.get(i).getName() + ", ");
                         if(i==genres.size()-1){
@@ -81,11 +84,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
                         }
 
                     }
+
+                    // TODO: 1/31/18 Так тексти не оформлюються, треба юзати getString(), а самі стрінги - винести в xml.
                     category.setText(String.valueOf("Categories: " + categories));
 
                     title.setText(movieDetails.getTitle());
                     releasedDate.setText(String.valueOf("Released: " + movieDetails.getReleased()));
 
+                    // TODO: 1/31/18 Для колекцій є метод, який перевіряє дану умову.
                     if(Integer.parseInt(movieDetails.getBudget())==0){
                         budget.setText(String.valueOf("Budget: " + "n/a"));
                     }else
@@ -94,6 +100,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                     runTime.setText(String.valueOf("Runtime: " + movieDetails.getRuntime() + "m"));
                     status.setText(String.valueOf("Status: " + movieDetails.getStatus()));
                     overview.setText(String.valueOf("Overview: " + movieDetails.getOverview()));
+                    // TODO: 1/31/18 Краще робити порівнняння навпаки, тому що може буть @java.lang.NullPointerException.
                     if(movieDetails.getTagline().equals("")){
                         tag.setText(String.valueOf("Tag: " + "n/a"));
                     }else {
@@ -110,7 +117,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<MovieDetails> call, Throwable t) {
-
+                // TODO: 1/31/18 Пусте обпрацювання помилки.
             }
         });
     }
