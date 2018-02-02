@@ -1,4 +1,7 @@
-package com.example.vadym.movieapp.Model;
+package com.example.vadym.movieapp.model;
+
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -11,22 +14,18 @@ import java.io.Serializable;
 
 public class Movie implements Serializable {
 
-    @SerializedName("id")
-    @Expose
-    // TODO: 1/31/18 Я знаю, що ти юзав для цього сервіс, але навіщо тут ця анотація? Ти прочитав її значення?
+    @Nullable
     private String id;
-    @SerializedName("title")
-    @Expose
     private String title;
     @SerializedName("poster_path")
-    @Expose
     private String image;
 
+    @Nullable
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@Nullable String id) {
         this.id = id;
     }
 

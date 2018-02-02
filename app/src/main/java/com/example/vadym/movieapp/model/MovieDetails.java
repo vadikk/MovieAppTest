@@ -1,9 +1,9 @@
-package com.example.vadym.movieapp.Model;
+package com.example.vadym.movieapp.model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,32 +13,17 @@ import java.util.List;
 public class MovieDetails {
 
     @SerializedName("poster_path")
-    @Expose
     private String poster;
     @SerializedName("genres")
-    @Expose
-    // TODO: 1/31/18 Хорошим тоном рахується такі об'єкти ініціалізувати пустими.
-    private List<MovieGenre> genres;
-    @SerializedName("budget")
-    @Expose
+    private List<MovieGenre> genres = new ArrayList<>();
     private String budget;
     @SerializedName("original_title")
-    @Expose
     private String title;
-    @SerializedName("overview")
-    @Expose
     private String overview;
     @SerializedName("release_date")
-    @Expose
     private String released;
-    @SerializedName("runtime")
-    @Expose
     private String runtime;
-    @SerializedName("status")
-    @Expose
     private String status;
-    @SerializedName("tagline")
-    @Expose
     private String tagline;
 
     public List<MovieGenre> getGenres() {
@@ -115,7 +100,6 @@ public class MovieDetails {
 
     public class MovieGenre{
 
-        @SerializedName("name")
         private String name;
 
         public String getName() {

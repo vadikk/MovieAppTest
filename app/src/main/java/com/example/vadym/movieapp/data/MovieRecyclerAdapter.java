@@ -1,15 +1,12 @@
-package com.example.vadym.movieapp.Data;
+package com.example.vadym.movieapp.data;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Filter;
-import android.widget.Filterable;
 
-import com.example.vadym.movieapp.Activities.OnMovieClickListener;
-import com.example.vadym.movieapp.Model.Movie;
+import com.example.vadym.movieapp.activities.OnMovieClickListener;
+import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.R;
 
 import java.util.ArrayList;
@@ -61,15 +58,14 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = movieList.get(position);
-        // TODO: 1/31/18 Таким форматуванням погано писати.
-        if(movie==null)
-            return;
 
-        holder.setMovie(movie);
-        // TODO: 1/31/18 Підсвічує студія про лямбди.
-        holder.itemView.setOnClickListener((v)->{
-            onMovieClick(holder.getAdapterPosition());
-        });
+        if(movie!=null){
+            holder.setMovie(movie);
+
+            holder.itemView.setOnClickListener((v)->
+                onMovieClick(holder.getAdapterPosition()));
+        }
+
     }
 
     @Override

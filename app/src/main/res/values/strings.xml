@@ -8,9 +8,10 @@
     <string name="budget">Budget:</string>
     <string name="runtime">Runtime:</string>
     <string name="status">Status:</string>
-    <string name="overview">Plot:</string>
+    <string name="overview">Overview:</string>
     <string name="tag">Tag:</string>
     <string name="genre">Category:</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="categories">Categories:</string>
 
 </resources>

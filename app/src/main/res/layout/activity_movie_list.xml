@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.vadym.movieapp.Activities.MovieListActivity">
+    tools:context="com.example.vadym.movieapp.activities.MovieListActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -28,6 +28,8 @@
         </android.support.v7.widget.SearchView>
 
     </android.support.design.widget.AppBarLayout>
+
+    <include layout="@layout/error_view"/>
 
     <LinearLayout
         android:layout_width="match_parent"
