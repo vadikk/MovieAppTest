@@ -50,6 +50,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_list);
 
+        // TODO: 2/3/18 Хтось забув тулбар забіндить)
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -105,7 +106,9 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
     }
 
     private void loadMoreData(String searchText, int page) {
-
+        // TODO: 2/3/18  Тут напрягає те, що в тебе йде перевірка на isLoading.
+        // TODO: 2/3/18 Суть в тому, що ти викликаєш цю функцію в 2 місцях, і в тебе перед цим isLoading сетиться в true.
+        // TODO: 2/3/18 Думаю, що тут модна перевірку прибрати і весь метод #getMovie() перенести сюди.
         if (isLoading) {
             bar.setVisibility(View.VISIBLE);
             getMovie(searchText, page);
@@ -155,6 +158,9 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
     }
 
     private void showFailView() {
+        // TODO: 2/3/18 Якщо в прикладі іздетальною сторінкою цей підхід був нормальний. то тут це не проканає.
+        // TODO: 2/3/18 Виходить, що користувач не має можливості заново пошукати фільм, якщо в нас виникла помилка.
+        // TODO: 2/3/18 Тут тре заюзати інший підхід.
         View view = getLayoutInflater().inflate(R.layout.error_view, null);
         setContentView(view);
         view.setVisibility(View.VISIBLE);

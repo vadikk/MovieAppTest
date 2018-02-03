@@ -16,6 +16,7 @@ import java.util.List;
 public class MovieResponce {
 
     private String page;
+    // TODO: 2/3/18 Підкреслено IDE + всі інші вниз.
     private String total_results;
     private String total_pages;
     @Nullable
@@ -49,6 +50,7 @@ public class MovieResponce {
         return results;
     }
 
+    // TODO: 2/3/18 Якщо тут приймаєш Nullable, то його тре або обпрацювати, або поле зорбити nullable і сетер також.
     public void setMovieList(@Nullable List<Movie> movieList) {
         this.results = movieList;
     }

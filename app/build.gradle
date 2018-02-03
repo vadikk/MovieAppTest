@@ -4,6 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.example.vadym.movieapp"
+//        todo Мені дуже цікаво, що тут робить версія апі 24, чи в тебе телефони до андроїда 7.0 не лакшерні?
         minSdkVersion 24
         targetSdkVersion 26
         versionCode 1

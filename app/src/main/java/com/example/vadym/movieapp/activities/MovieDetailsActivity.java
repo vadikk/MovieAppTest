@@ -63,9 +63,16 @@ public class MovieDetailsActivity extends AppCompatActivity {
         if(bundle!=null){
             movie = (Movie) bundle.getSerializable("detail");
             // TODO: 1/31/18 ???????
+            // TODO: 2/3/18 Якщо ти зайшов би в функцію getSerializable(), то побачив би, що вона вертає Nullable.
+            // TODO: 2/3/18 Це значить, що в тебе може не бути того об'єкту, який ти там шукаєш.
+            // TODO: 2/3/18 Наприклад, коли ти помилився ключем, тому воно і було потенційно нул.
+            // TODO: 2/3/18 Якщо б ти помилився ключем, або передало нул із попередньої актівіті, то був би NPE.
             movieId = movie.getId();
 
         }
+
+        // TODO: 2/3/18 Дивись, яка тут ситуація. Якщо в тебе не зайшло в попередній блок, то в тебе movieId буде нулове. 
+        // TODO: 2/3/18 Тут палка з двох кінців, я не знаю, як поведе себе АРІ, коли не прийде потрібний параметр, можливо, варто показувати помилку, якщо детектимо, що тут нул.
 
         getMovieDetail(movieId);
     }
@@ -82,11 +89,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
                     List<MovieDetails.MovieGenre> genres = movieDetails.getGenres();
 
                     StringJoiner joiner = new StringJoiner(", ");
+                    // TODO: 2/3/18 Глянь на конструкцію foreach, яка студією надається, не буде мозолити очі з індексами.
                     for (int i = 0; i < genres.size(); i++) {
                         joiner.add(genres.get(i).getName());
                     }
 
                     String genre_name = joiner.toString();
+
+                    // TODO: 2/3/18 https://developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
                     category.setText(String.valueOf(getText(R.string.categories) + " " + genre_name));
 
                     title.setText(movieDetails.getTitle());

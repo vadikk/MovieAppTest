@@ -5,9 +5,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.activities.OnMovieClickListener;
 import com.example.vadym.movieapp.model.Movie;
-import com.example.vadym.movieapp.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +29,7 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
         this.listener = listener;
     }
 
+    // TODO: 2/3/18 Допиши тут Nullable, тобі потім студія буде підсвічувати сама. що в тебе результат цієї функції може буть нул.
     public Movie getMovie(int position){
         if(position<0 || position>=getItemCount()){
             return null;
@@ -74,7 +75,7 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     }
 
     private void onMovieClick(int position){
-
+        // TODO: 2/3/18 Пошукай в студії в себе хоткеї для форматування коду, воно дозволяє його по стилю і відступах відформатувати.
         if(listener!=null){
             listener.onMovieClick(position);
         }
