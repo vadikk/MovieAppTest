@@ -2,10 +2,8 @@ package com.example.vadym.movieapp.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -14,12 +12,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
-import com.example.vadym.movieapp.constans.Constant;
 import com.example.vadym.movieapp.data.MovieRecyclerAdapter;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieResponce;
 import com.example.vadym.movieapp.R;
+import com.example.vadym.movieapp.util.ErrorUtil;
 
 import java.util.List;
 
@@ -37,6 +36,10 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
     ProgressBar bar;
     @BindView(R.id.search)
     SearchView searchView;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    @BindView(R.id.cardError_view)
+    CardView cardView;
 
     private MovieRecyclerAdapter adapter;
     private String searchText;
@@ -50,11 +53,9 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_list);
 
-        // TODO: 2/3/18 Хтось забув тулбар забіндить)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
         ButterKnife.bind(this);
+
+        setSupportActionBar(toolbar);
 
         LinearLayoutManager manager = new LinearLayoutManager(this);
         manager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -100,24 +101,17 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
 
                 if (isLoading)
                     loadMoreData(searchText, page);
+
             }
         });
 
     }
 
     private void loadMoreData(String searchText, int page) {
-        // TODO: 2/3/18  Тут напрягає те, що в тебе йде перевірка на isLoading.
-        // TODO: 2/3/18 Суть в тому, що ти викликаєш цю функцію в 2 місцях, і в тебе перед цим isLoading сетиться в true.
-        // TODO: 2/3/18 Думаю, що тут модна перевірку прибрати і весь метод #getMovie() перенести сюди.
-        if (isLoading) {
-            bar.setVisibility(View.VISIBLE);
-            getMovie(searchText, page);
-        }
-    }
 
-    private void getMovie(String search, int page) {
-
-        Call<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getMovie(Constant.API_KEY, search, page);
+        cardView.setVisibility(View.INVISIBLE);
+        bar.setVisibility(View.VISIBLE);
+        Call<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getMovie( searchText, page);
         responseCall.enqueue(new Callback<MovieResponce>() {
             @Override
             public void onResponse(Call<MovieResponce> call, Response<MovieResponce> response) {
@@ -125,7 +119,7 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
                 if (response.isSuccessful()) {
 
                     MovieResponce movieResponce = response.body();
-                    total = Integer.parseInt(movieResponce.getTotal_results());
+                    total = Integer.parseInt(movieResponce.getTotalResults());
                     List<Movie> movies = movieResponce.getMovieList();
                     adapter.addAll(movies);
                     isLoading = false;
@@ -137,6 +131,8 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
                         }
                     }, 1000);
                 } else {
+                    ApiError error = ErrorUtil.parseError(response);
+                    Log.d("TAG", error.getStatus_message());
                     showFailView();
                 }
             }
@@ -146,8 +142,8 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
                 showFailView();
             }
         });
-
     }
+
 
     @Override
     public void onMovieClick(int position) {
@@ -158,12 +154,9 @@ public class MovieListActivity extends AppCompatActivity implements OnMovieClick
     }
 
     private void showFailView() {
-        // TODO: 2/3/18 Якщо в прикладі іздетальною сторінкою цей підхід був нормальний. то тут це не проканає.
-        // TODO: 2/3/18 Виходить, що користувач не має можливості заново пошукати фільм, якщо в нас виникла помилка.
-        // TODO: 2/3/18 Тут тре заюзати інший підхід.
-        View view = getLayoutInflater().inflate(R.layout.error_view, null);
-        setContentView(view);
-        view.setVisibility(View.VISIBLE);
+
+        bar.setVisibility(View.GONE);
+        cardView.setVisibility(View.VISIBLE);
     }
 
 }

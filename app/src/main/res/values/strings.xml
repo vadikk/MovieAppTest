@@ -4,14 +4,15 @@
     <string name="search_hint">E.g: Batman</string>
     <string name="submit_text">Submit</string>
     <string name="movie_name">Movie Title</string>
-    <string name="release_date">Released Date:</string>
-    <string name="budget">Budget:</string>
-    <string name="runtime">Runtime:</string>
-    <string name="status">Status:</string>
-    <string name="overview">Overview:</string>
-    <string name="tag">Tag:</string>
+    <string name="release_date">Released Date: %s</string>
+    <string name="budget">Budget: %s</string>
+    <string name="budget2">Budget: %1$s%2$s</string>
+    <string name="runtime">Runtime: %1$s%2$s</string>
+    <string name="status">Status: %s</string>
+    <string name="overview">Overview: %s</string>
+    <string name="tag">Tag: %s</string>
     <string name="genre">Category:</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="categories">Categories:</string>
+    <string name="categories">Categories: %s</string>
 
 </resources>

@@ -16,9 +16,10 @@ import java.util.List;
 public class MovieResponce {
 
     private String page;
-    // TODO: 2/3/18 Підкреслено IDE + всі інші вниз.
-    private String total_results;
-    private String total_pages;
+    @SerializedName("total_results")
+    private String totalResults;
+    @SerializedName("total_pages")
+    private String totalPages;
     @Nullable
     private List<Movie> results = new ArrayList<>();
 
@@ -30,28 +31,29 @@ public class MovieResponce {
         this.page = page;
     }
 
-    public String getTotal_results() {
-        return total_results;
+    public String getTotalResults() {
+        return totalResults;
     }
 
-    public void setTotal_results(String total_results) {
-        this.total_results = total_results;
+    public void setTotalResults(String totalResults) {
+        this.totalResults = totalResults;
     }
 
-    public String getTotal_pages() {
-        return total_pages;
+    public String getTotalPages() {
+        return totalPages;
     }
 
-    public void setTotal_pages(String total_pages) {
-        this.total_pages = total_pages;
+    public void setTotalPages(String totalPages) {
+        this.totalPages = totalPages;
     }
 
     public List<Movie> getMovieList() {
         return results;
     }
 
-    // TODO: 2/3/18 Якщо тут приймаєш Nullable, то його тре або обпрацювати, або поле зорбити nullable і сетер також.
     public void setMovieList(@Nullable List<Movie> movieList) {
-        this.results = movieList;
+        if(movieList!=null){
+            this.results = movieList;
+        }
     }
 }

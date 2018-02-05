@@ -1,5 +1,6 @@
 package com.example.vadym.movieapp.data;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,33 +26,33 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     public MovieRecyclerAdapter() {
     }
 
-    public void setOnMovieClickListener(OnMovieClickListener listener){
+    public void setOnMovieClickListener(OnMovieClickListener listener) {
         this.listener = listener;
     }
 
-    // TODO: 2/3/18 Допиши тут Nullable, тобі потім студія буде підсвічувати сама. що в тебе результат цієї функції може буть нул.
-    public Movie getMovie(int position){
-        if(position<0 || position>=getItemCount()){
+    @Nullable
+    public Movie getMovie(int position) {
+        if (position < 0 || position >= getItemCount()) {
             return null;
         }
         return movieList.get(position);
     }
 
-    public void addAll(List<Movie> movies){
+    public void addAll(List<Movie> movies) {
         int positionStart = getItemCount();
-        notifyItemRangeInserted(positionStart,movies.size());
+        notifyItemRangeInserted(positionStart, movies.size());
         movieList.addAll(movies);
     }
 
-    public void clear(){
-        notifyItemRangeRemoved(0,getItemCount());
+    public void clear() {
+        notifyItemRangeRemoved(0, getItemCount());
         movieList.clear();
     }
 
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_row,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_row, parent, false);
 
         return new MovieViewHolder(view);
     }
@@ -60,11 +61,11 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = movieList.get(position);
 
-        if(movie!=null){
+        if (movie != null) {
             holder.setMovie(movie);
 
-            holder.itemView.setOnClickListener((v)->
-                onMovieClick(holder.getAdapterPosition()));
+            holder.itemView.setOnClickListener((v) ->
+                    onMovieClick(holder.getAdapterPosition()));
         }
 
     }
@@ -74,9 +75,8 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
         return movieList.size();
     }
 
-    private void onMovieClick(int position){
-        // TODO: 2/3/18 Пошукай в студії в себе хоткеї для форматування коду, воно дозволяє його по стилю і відступах відформатувати.
-        if(listener!=null){
+    private void onMovieClick(int position) {
+        if (listener != null) {
             listener.onMovieClick(position);
         }
     }
