@@ -5,7 +5,7 @@ package com.example.vadym.movieapp.api;
  */
 
 public class ApiError {
-
+    // TODO: 2/6/18 Переформатуй, юзаючи SerializedName, методи також. Щоб не підсвічувалося.
     private String status_code;
     private String status_message;
 

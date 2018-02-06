@@ -1,7 +1,6 @@
 package com.example.vadym.movieapp.activities;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -10,21 +9,17 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.constans.Constant;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieDetails;
-import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.util.ErrorUtil;
 import com.squareup.picasso.Picasso;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
-import java.util.stream.Stream;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -75,7 +70,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
             }
 
         }
-
+        // TODO: 2/6/18 Що буде, якщо movieId тут буде нул? Тре захендлти чи перевірити явно.
         getMovieDetail(movieId);
     }
 
@@ -88,20 +83,27 @@ public class MovieDetailsActivity extends AppCompatActivity {
                 if(response.isSuccessful()){
                     MovieDetails movieDetails = response.body();
 
-                    List<MovieDetails.MovieGenre> genres = movieDetails.getGenres();
-
+//                    List<MovieDetails.MovieGenre> genres = movieDetails.getGenres();
                     List<String> names = new ArrayList<>();
-                    for (int i = 0; i < genres.size(); i++) {
-                        names.add(genres.get(i).getName());
+//                    for (int i = 0; i < genres.size(); i++) {
+//                        names.add(genres.get(i).getName());
+//                    }
+                    // TODO: 2/6/18 Ще тако можна зробить. 
+                    for (MovieDetails.MovieGenre genre : movieDetails.getGenres()) {
+                        names.add(genre.getName());
                     }
-
+                    
+                    
+                    
+                    // TODO: 2/6/18 От і заробив join. Але поміняй назву змінної. 
                     String genre_name = TextUtils.join(", ",names);
 
                     category.setText(getResources().getString(R.string.categories, genre_name));
 
                     title.setText(movieDetails.getTitle());
                     releasedDate.setText(getResources().getString(R.string.release_date, movieDetails.getReleased()));
-
+                    // TODO: 2/6/18 Як варіант, можна рівняти тут через  "0".equals(movieDetails.getBudget())
+                    // TODO: 2/6/18 Зачасту так роблять.
                     if (movieDetails.getBudget().equals(String.valueOf(0))) {
                         budget.setText(getResources().getString(R.string.budget, "n/a"));
                     }else
@@ -123,6 +125,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
                             .placeholder(android.R.drawable.ic_btn_speak_now)
                             .into(imageView);
                 } else {
+                    // TODO: 2/6/18 Хтось тут щось забув зробити.
                     ApiError error = ErrorUtil.parseError(response);
                     showFailView();
                 }
@@ -137,6 +140,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void showFailView() {
+        // TODO: 2/6/18 Давай тут ти зробиш вьюху як на першому екрані і можливість перезавантажити  дані. 
+        // TODO: 2/6/18 Нехай в тулбарі в меню буде рефреша.
         View view = getLayoutInflater().inflate(R.layout.error_view, null);
         setContentView(view);
         view.setVisibility(View.VISIBLE);

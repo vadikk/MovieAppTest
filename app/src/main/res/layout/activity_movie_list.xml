@@ -42,6 +42,7 @@
             android:layout_height="match_parent" />
     </RelativeLayout>
 
+    <!--todo Іменуй id вьюх в одному ситилі, або камел, або підкреснення-->
     <android.support.v7.widget.CardView
         android:id="@+id/cardError_view"
         android:layout_width="match_parent"

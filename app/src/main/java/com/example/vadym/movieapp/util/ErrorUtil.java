@@ -26,6 +26,10 @@ public class ErrorUtil {
         try {
             error = converter.convert(response.errorBody());
         } catch (IOException e) {
+            // TODO: 2/6/18 Дивись, в цьому випадку краще зробити конструктор для даного ексепшена і вказувати насильно дефолтне значення.
+            // TODO: Щось типу return new ApiError("Unknown error has been occurred);
+            // TODO: Це робиться доя того, щоб користувач міг побачити якесь значення, якщо ти не вгадав із конвертом еррор респонса.
+            // TODO: А ще таке можна зробити через GSON.
             return new ApiError();
         }
 

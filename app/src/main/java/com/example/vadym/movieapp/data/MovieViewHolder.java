@@ -37,6 +37,7 @@ public class MovieViewHolder extends RecyclerView.ViewHolder {
         title.setText(movie.getTitle());
 
         Picasso.with(this.itemView.getContext())
+                // TODO: 2/6/18 Що за збочення?)
                 .load(String.format("%s",Constant.TMDB_IMAGE+moviePoster))
                 .placeholder(android.R.drawable.ic_btn_speak_now)
                 .into(imageView);
