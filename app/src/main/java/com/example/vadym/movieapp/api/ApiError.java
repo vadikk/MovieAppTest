@@ -1,22 +1,27 @@
 package com.example.vadym.movieapp.api;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by Vadym on 04.02.2018.
  */
 
 public class ApiError {
-    // TODO: 2/6/18 Переформатуй, юзаючи SerializedName, методи також. Щоб не підсвічувалося.
-    private String status_code;
-    private String status_message;
 
-    public ApiError() {
+    @SerializedName("status_code")
+    private String code;
+    @SerializedName("status_message")
+    private String message;
+
+    public ApiError(String mes) {
+        message = mes;
     }
 
-    public String getStatus_code() {
-        return status_code;
+    public String getCode() {
+        return code;
     }
 
-    public String getStatus_message() {
-        return status_message;
+    public String getMessage() {
+        return message;
     }
 }

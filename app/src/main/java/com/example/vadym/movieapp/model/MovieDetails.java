@@ -1,6 +1,5 @@
 package com.example.vadym.movieapp.model;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -98,7 +97,7 @@ public class MovieDetails {
         this.tagline = tagline;
     }
 
-    public class MovieGenre{
+    public class MovieGenre {
 
         private String name;
 

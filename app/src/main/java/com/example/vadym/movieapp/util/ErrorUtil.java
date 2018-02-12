@@ -16,9 +16,9 @@ import retrofit2.Response;
 
 public class ErrorUtil {
 
-    public static ApiError parseError(Response<?> response){
+    public static ApiError parseError(Response<?> response) {
 
-        Converter<ResponseBody,ApiError> converter = MovieRetrofit
+        Converter<ResponseBody, ApiError> converter = MovieRetrofit
                 .getReferenceRetrofit().responseBodyConverter(ApiError.class, new Annotation[0]);
 
         ApiError error;
@@ -26,11 +26,7 @@ public class ErrorUtil {
         try {
             error = converter.convert(response.errorBody());
         } catch (IOException e) {
-            // TODO: 2/6/18 Дивись, в цьому випадку краще зробити конструктор для даного ексепшена і вказувати насильно дефолтне значення.
-            // TODO: Щось типу return new ApiError("Unknown error has been occurred);
-            // TODO: Це робиться доя того, щоб користувач міг побачити якесь значення, якщо ти не вгадав із конвертом еррор респонса.
-            // TODO: А ще таке можна зробити через GSON.
-            return new ApiError();
+            return new ApiError("Unknown error has been occurred");
         }
 
         return error;

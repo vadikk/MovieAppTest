@@ -3,8 +3,11 @@ package com.example.vadym.movieapp.activities;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.text.TextUtils;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,7 +16,6 @@ import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.constans.Constant;
-import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieDetails;
 import com.example.vadym.movieapp.util.ErrorUtil;
 import com.squareup.picasso.Picasso;
@@ -28,11 +30,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MovieDetailsActivity extends AppCompatActivity {
-
-    @Nullable
-    private Movie movie = null;
-    @Nullable
-    private String movieId = null;
 
     @BindView(R.id.movieImageDetail)
     ImageView imageView;
@@ -52,7 +49,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
     TextView tag;
     @BindView(R.id.movieGenreDetail)
     TextView category;
-
+    @BindView(R.id.cardErrorView)
+    CardView errorViewCard;
+    @BindView(R.id.cardViewDet)
+    CardView cardViewDet;
+    @Nullable
+    private String movieId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,87 +65,106 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         Bundle bundle = getIntent().getExtras();
 
-        if(bundle!=null){
-            movie = (Movie) bundle.getSerializable("detail");
-            if(movie!=null){
-                movieId = movie.getId();
-            }
-
+        if (bundle != null) {
+            movieId = bundle.getString("detail");
+            ;
         }
-        // TODO: 2/6/18 Що буде, якщо movieId тут буде нул? Тре захендлти чи перевірити явно.
-        getMovieDetail(movieId);
+        if (movieId != null) {
+            getMovieDetail(movieId);
+        }
+
     }
 
-    private void getMovieDetail(String id){
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_detail_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.refreshDetail:
+                refreshDetailActivity();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
+    private void getMovieDetail(String id) {
 
         Call<MovieDetails> detailsCall = MovieRetrofit.getRetrofit().getMovieDetails(id);
         detailsCall.enqueue(new Callback<MovieDetails>() {
             @Override
             public void onResponse(Call<MovieDetails> call, Response<MovieDetails> response) {
-                if(response.isSuccessful()){
+                if (response.isSuccessful()) {
                     MovieDetails movieDetails = response.body();
 
-//                    List<MovieDetails.MovieGenre> genres = movieDetails.getGenres();
                     List<String> names = new ArrayList<>();
-//                    for (int i = 0; i < genres.size(); i++) {
-//                        names.add(genres.get(i).getName());
-//                    }
-                    // TODO: 2/6/18 Ще тако можна зробить. 
+
                     for (MovieDetails.MovieGenre genre : movieDetails.getGenres()) {
                         names.add(genre.getName());
                     }
-                    
-                    
-                    
-                    // TODO: 2/6/18 От і заробив join. Але поміняй назву змінної. 
-                    String genre_name = TextUtils.join(", ",names);
 
-                    category.setText(getResources().getString(R.string.categories, genre_name));
+                    String genres = TextUtils.join(", ", names);
+
+                    category.setText(getResources().getString(R.string.categories, genres));
 
                     title.setText(movieDetails.getTitle());
                     releasedDate.setText(getResources().getString(R.string.release_date, movieDetails.getReleased()));
-                    // TODO: 2/6/18 Як варіант, можна рівняти тут через  "0".equals(movieDetails.getBudget())
-                    // TODO: 2/6/18 Зачасту так роблять.
-                    if (movieDetails.getBudget().equals(String.valueOf(0))) {
+
+                    if ("0".equals(movieDetails.getBudget())) {
                         budget.setText(getResources().getString(R.string.budget, "n/a"));
-                    }else
+                    } else
                         budget.setText(getResources().getString(R.string.budget2, movieDetails.getBudget(), "$"));
 
-                    runTime.setText(getResources().getString(R.string.runtime,movieDetails.getRuntime(),"m"));
+                    runTime.setText(getResources().getString(R.string.runtime, movieDetails.getRuntime(), "m"));
                     status.setText(getResources().getString(R.string.status, movieDetails.getStatus()));
                     overview.setText(getResources().getString(R.string.overview, movieDetails.getOverview()));
 
                     if (("").equals(movieDetails.getTagline())) {
                         tag.setText(getResources().getString(R.string.tag, "n/a"));
-                    }else {
+                    } else {
                         tag.setText(getResources().getString(R.string.tag, movieDetails.getTagline()));
                     }
 
 
                     Picasso.with(getApplicationContext())
-                            .load(String.format("%s",Constant.TMDB_IMAGE + movieDetails.getPoster()))
+                            .load(String.format("%s", Constant.TMDB_IMAGE + movieDetails.getPoster()))
                             .placeholder(android.R.drawable.ic_btn_speak_now)
                             .into(imageView);
                 } else {
-                    // TODO: 2/6/18 Хтось тут щось забув зробити.
                     ApiError error = ErrorUtil.parseError(response);
-                    showFailView();
+                    showFailView(error.getMessage());
                 }
             }
 
             @Override
             public void onFailure(Call<MovieDetails> call, Throwable t) {
-                Log.d("TAG", t.getMessage());
-                showFailView();
+                showFailView(t.getMessage());
             }
         });
     }
 
-    private void showFailView() {
-        // TODO: 2/6/18 Давай тут ти зробиш вьюху як на першому екрані і можливість перезавантажити  дані. 
-        // TODO: 2/6/18 Нехай в тулбарі в меню буде рефреша.
-        View view = getLayoutInflater().inflate(R.layout.error_view, null);
-        setContentView(view);
-        view.setVisibility(View.VISIBLE);
+    private void showFailView(String message) {
+        cardViewDet.setVisibility(View.INVISIBLE);
+        errorViewCard.setVisibility(View.VISIBLE);
+        TextView errorText = errorViewCard.findViewById(R.id.errorTitle);
+        if (errorText != null)
+            errorText.setText(message);
     }
+
+    private void refreshDetailActivity() {
+        errorViewCard.setVisibility(View.INVISIBLE);
+        cardViewDet.setVisibility(View.VISIBLE);
+        getMovieDetail(movieId);
+    }
+
+
 }

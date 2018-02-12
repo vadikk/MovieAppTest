@@ -1,4 +1,4 @@
-package com.example.vadym.movieapp.data;
+package com.example.vadym.movieapp.data.listMovie;
 
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.activities.OnMovieClickListener;
+import com.example.vadym.movieapp.activities.OnStarClickListener;
 import com.example.vadym.movieapp.model.Movie;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
 
 
     private OnMovieClickListener listener;
+    private OnStarClickListener starListener;
     private List<Movie> movieList = new ArrayList<>();
 
     public MovieRecyclerAdapter() {
@@ -29,6 +31,11 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     public void setOnMovieClickListener(OnMovieClickListener listener) {
         this.listener = listener;
     }
+
+    public void setOnClickListener(OnStarClickListener listener) {
+        this.starListener = listener;
+    }
+
 
     @Nullable
     public Movie getMovie(int position) {
@@ -51,9 +58,7 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
 
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_row, parent, false);
-
         return new MovieViewHolder(view);
     }
 
@@ -66,6 +71,7 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
 
             holder.itemView.setOnClickListener((v) ->
                     onMovieClick(holder.getAdapterPosition()));
+            holder.star.setOnClickListener((view) -> onStarClick(holder.getAdapterPosition()));
         }
 
     }
@@ -80,4 +86,11 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
             listener.onMovieClick(position);
         }
     }
+
+    private void onStarClick(int position) {
+        if (starListener != null) {
+            starListener.onClickStar(position);
+        }
+    }
+
 }

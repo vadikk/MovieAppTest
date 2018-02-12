@@ -1,9 +1,7 @@
 package com.example.vadym.movieapp.model;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -52,7 +50,7 @@ public class MovieResponce {
     }
 
     public void setMovieList(@Nullable List<Movie> movieList) {
-        if(movieList!=null){
+        if (movieList != null) {
             this.results = movieList;
         }
     }
