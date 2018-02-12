@@ -50,6 +50,7 @@ public class MovieResponce {
     }
 
     public void setMovieList(@Nullable List<Movie> movieList) {
+        // TODO: 2/12/18 Тут тре щось зробити з цим. Якщо в тебе тут 10 елементів, а прийшло на вхід нул, то ми маємо ті 10 залишити?
         if (movieList != null) {
             this.results = movieList;
         }

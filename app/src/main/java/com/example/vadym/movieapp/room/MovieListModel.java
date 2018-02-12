@@ -67,6 +67,7 @@ public class MovieListModel extends AndroidViewModel {
 
         @Override
         protected Void doInBackground(Movie... movies) {
+            // TODO: 2/12/18 Організуй тут правильно, оскільки тут може буть як і 0 фільмів закинуто, так і 10.
             db.movieDao().delete(movies[0]);
             return null;
         }
@@ -82,6 +83,7 @@ public class MovieListModel extends AndroidViewModel {
 
         @Override
         protected Void doInBackground(Movie... movies) {
+            // TODO: 2/12/18 Організуй тут правильно, оскільки тут може буть як і 0 фільмів закинуто, так і 10.
             db.movieDao().insert(movies[0]);
             return null;
         }

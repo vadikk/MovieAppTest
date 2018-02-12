@@ -63,7 +63,7 @@ public class FavoriteListActivity extends AppCompatActivity {
                 adapter = new FavoriteMovieAdapter(favoriteMovieList);
                 recyclerView.setAdapter(adapter);
 
-
+                // TODO: 2/12/18 NPE
                 for (int i = 0; i < list.size(); i++) {
                     Movie movie = list.get(i);
                     Log.d("TAG", " Item " + movie.getTitle());

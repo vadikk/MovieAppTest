@@ -75,6 +75,9 @@ public class MainActivity extends AppCompatActivity
     private List<Movie> downloadFirst = new ArrayList<>();
     private Set<String> dbLoadList = new HashSet<>();
 
+
+    // TODO: 2/12/18 І нове завдання - зробити вхід в акаунт + підтягувати дані в navigationView
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -207,6 +210,10 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+
+    // TODO: 2/12/18 Я ж казав тобі, що операція перебору - не потрібна в цьому плані.
+    // TODO: Set із айдійшками має лежати в адапторі і по ньому він має дивитися, яку іконку ставити.
+    // TODO: А ще набагато краще - вибирати з бази не самі фільми, а тільки їх ID.
 
     private void checkListMoview() {
 

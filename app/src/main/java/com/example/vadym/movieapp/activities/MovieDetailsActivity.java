@@ -29,6 +29,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+// TODO: 2/12/18 Зроби якийсь лоадер, поки вантажиться інформація. Бо не прикольно, що користувач бачить плейсхолдери.
+// TODO: 2/12/18 Додати можливість додавати/видаляти тут фільм із списку улюбленого.
 public class MovieDetailsActivity extends AppCompatActivity {
 
     @BindView(R.id.movieImageDetail)

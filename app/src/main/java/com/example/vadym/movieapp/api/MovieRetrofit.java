@@ -39,6 +39,7 @@ public class MovieRetrofit {
         public static OkHttpClient.Builder getOkHttpClient() {
 
             OkHttpClient.Builder okhttp = new OkHttpClient.Builder();
+            // TODO: 2/12/18 Інтерсертор винеси в  окремий клас.
             okhttp.addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Interceptor.Chain chain) throws IOException {

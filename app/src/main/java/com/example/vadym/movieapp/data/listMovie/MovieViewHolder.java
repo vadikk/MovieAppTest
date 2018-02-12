@@ -42,6 +42,8 @@ public class MovieViewHolder extends RecyclerView.ViewHolder {
         String moviePoster = movie.getImage();
         title.setText(movie.getTitle());
 
+        // TODO: 2/12/18 Назва фільму наїжджає на зірочку.
+
         if (movie.isFavorite()) {
             star.setBackground(itemView.getContext().getResources().getDrawable(R.drawable.ic_launcher));
         } else {

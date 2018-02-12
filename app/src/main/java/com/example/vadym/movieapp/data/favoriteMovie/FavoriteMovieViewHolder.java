@@ -42,7 +42,9 @@ public class FavoriteMovieViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void setText(Movie movie) {
-
+        // TODO: 2/12/18 Де три точки вкінці обрізаного тексту?
+        // TODO: 2/12/18 Реалізувати показ інформації про фільм із цієї сторінки.
+        // TODO: 2/12/18 Реалізувати видалення фільмів із цього екрану. Бажано - свайпом в сторону.
         title.setText(movie.getTitle());
         overview.setText(itemView.getResources().getString(R.string.overview, movie.getOverview()));
 
