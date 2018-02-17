@@ -1,5 +1,7 @@
 package com.example.vadym.movieapp.activities;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -9,19 +11,26 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.constans.Constant;
+import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieDetails;
+import com.example.vadym.movieapp.room.MovieListModel;
 import com.example.vadym.movieapp.util.ErrorUtil;
+import com.example.vadym.movieapp.util.UpdateListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,9 +38,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-// TODO: 2/12/18 Зроби якийсь лоадер, поки вантажиться інформація. Бо не прикольно, що користувач бачить плейсхолдери.
-// TODO: 2/12/18 Додати можливість додавати/видаляти тут фільм із списку улюбленого.
-public class MovieDetailsActivity extends AppCompatActivity {
+public class MovieDetailsActivity extends AppCompatActivity implements View.OnClickListener {
 
     @BindView(R.id.movieImageDetail)
     ImageView imageView;
@@ -55,8 +62,23 @@ public class MovieDetailsActivity extends AppCompatActivity {
     CardView errorViewCard;
     @BindView(R.id.cardViewDet)
     CardView cardViewDet;
+    @BindView(R.id.cardViewDet2)
+    CardView cardViewDet2;
+    @BindView(R.id.progressBarDetail)
+    ProgressBar detailBar;
+    @BindView(R.id.imageButtonDetail)
+    ImageButton imageButton;
+
     @Nullable
     private String movieId = null;
+    private MovieListModel viewModel;
+    private Set<String> setID = new HashSet<>();
+    private boolean isFirstStartActivity = false;
+    private boolean isClick = false;
+
+    private String titleMovie = null;
+    private String image = null;
+    private String overviewDet = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,16 +87,62 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
+        viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
         Bundle bundle = getIntent().getExtras();
 
         if (bundle != null) {
             movieId = bundle.getString("detail");
-            ;
+
         }
         if (movieId != null) {
             getMovieDetail(movieId);
         }
 
+        subcribeOnUI();
+        shoProgressBar();
+
+
+        imageButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (setID.contains(movieId)) {
+            isClick = true;
+            imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
+
+        } else {
+            imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher));
+        }
+
+        if (isClick) {
+            viewModel.deleteByID(movieId);
+            UpdateListener.updateAdapter(movieId);
+        }
+    }
+
+    private void subcribeOnUI() {
+
+        viewModel.getItems().observe(MovieDetailsActivity.this, new Observer<List<Movie>>() {
+            @Override
+            public void onChanged(@Nullable List<Movie> list) {
+                for (int i = 0; i < list.size(); i++) {
+                    Movie movie = list.get(i);
+                    setID.add(movie.getId());
+                }
+
+                if (!isFirstStartActivity) {
+                    isFirstStartActivity = true;
+                    if (setID.contains(movieId)) {
+                        imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher));
+                    } else {
+                        imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
+                    }
+                }
+
+
+            }
+        });
     }
 
     @Override
@@ -99,6 +167,24 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
     }
 
+    private void shoProgressBar() {
+        detailBar.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                detailBar.setVisibility(View.INVISIBLE);
+                cardViewDet.setVisibility(View.VISIBLE);
+                cardViewDet2.setVisibility(View.VISIBLE);
+            }
+        }, 2000);
+    }
+
+    private void getValueFromMovieDatils(MovieDetails movieDetails) {
+
+        image = movieDetails.getPoster();
+        overviewDet = movieDetails.getOverview();
+        titleMovie = movieDetails.getTitle();
+    }
+
     private void getMovieDetail(String id) {
 
         Call<MovieDetails> detailsCall = MovieRetrofit.getRetrofit().getMovieDetails(id);
@@ -107,6 +193,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
             public void onResponse(Call<MovieDetails> call, Response<MovieDetails> response) {
                 if (response.isSuccessful()) {
                     MovieDetails movieDetails = response.body();
+                    getValueFromMovieDatils(movieDetails);
 
                     List<String> names = new ArrayList<>();
 

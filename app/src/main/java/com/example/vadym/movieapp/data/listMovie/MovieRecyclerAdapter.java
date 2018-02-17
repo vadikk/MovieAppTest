@@ -7,12 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vadym.movieapp.R;
-import com.example.vadym.movieapp.activities.OnMovieClickListener;
 import com.example.vadym.movieapp.activities.OnStarClickListener;
 import com.example.vadym.movieapp.model.Movie;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Vadym on 29.01.2018.
@@ -20,22 +21,38 @@ import java.util.List;
 
 public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> {
 
-
-    private OnMovieClickListener listener;
     private OnStarClickListener starListener;
     private List<Movie> movieList = new ArrayList<>();
+    private Set<String> favoritID = new HashSet<>();
 
-    public MovieRecyclerAdapter() {
-    }
+    public MovieRecyclerAdapter(Set<String> strings) {
 
-    public void setOnMovieClickListener(OnMovieClickListener listener) {
-        this.listener = listener;
+        favoritID = strings;
     }
 
     public void setOnClickListener(OnStarClickListener listener) {
         this.starListener = listener;
     }
 
+    public void setFavoritID(String favoritID) {
+        this.favoritID.add(favoritID);
+    }
+
+    public void deleteFavoritID(String favoritID) {
+        this.favoritID.remove(favoritID);
+        notifyDataSetChanged();
+    }
+
+    public boolean ifExist(String id) {
+        if (favoritID.contains(id))
+            return true;
+
+        return false;
+    }
+
+    public int getSize() {
+        return favoritID.size();
+    }
 
     @Nullable
     public Movie getMovie(int position) {
@@ -56,6 +73,15 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
         movieList.clear();
     }
 
+    private void chechListMovie(Movie movie) {
+
+        if (favoritID.contains(movie.getId())) {
+            movie.setFavorite(true);
+        } else {
+            movie.setFavorite(false);
+        }
+    }
+
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_row, parent, false);
@@ -65,12 +91,11 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = movieList.get(position);
+        chechListMovie(movie);
 
         if (movie != null) {
             holder.setMovie(movie);
 
-            holder.itemView.setOnClickListener((v) ->
-                    onMovieClick(holder.getAdapterPosition()));
             holder.star.setOnClickListener((view) -> onStarClick(holder.getAdapterPosition()));
         }
 
@@ -79,12 +104,6 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     @Override
     public int getItemCount() {
         return movieList.size();
-    }
-
-    private void onMovieClick(int position) {
-        if (listener != null) {
-            listener.onMovieClick(position);
-        }
     }
 
     private void onStarClick(int position) {

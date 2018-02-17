@@ -35,6 +35,8 @@
                 android:padding="5dp"
                 android:text="@string/overview"
                 android:layout_below="@id/movieTitleFavorite"
+                android:ellipsize="end"
+                android:maxLines="3"
                 android:layout_toRightOf="@id/movieImageFavorite"/>
 
 

@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vadym.movieapp.R;
+import com.example.vadym.movieapp.activities.OnMovieClickListener;
 import com.example.vadym.movieapp.model.Movie;
 
 import java.util.List;
@@ -18,9 +19,29 @@ import java.util.List;
 public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieViewHolder> {
 
     private List<Movie> favoriteList;
+    private OnMovieClickListener listener;
 
     public FavoriteMovieAdapter(List<Movie> list) {
         favoriteList = list;
+    }
+
+    public void setOnMovieClickListener(OnMovieClickListener listener) {
+        this.listener = listener;
+    }
+
+    public void deleteFromList(int position) {
+        if (position < 0 || position >= getItemCount()) {
+            return;
+        }
+        notifyItemRemoved(position);
+        favoriteList.remove(position);
+    }
+
+    public Movie getMovie(int position) {
+        if (position < 0 || position >= getItemCount()) {
+            return null;
+        }
+        return favoriteList.get(position);
     }
 
     @Override
@@ -36,6 +57,8 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
         if (movie != null) {
             holder.setImage(movie);
             holder.setText(movie);
+
+            holder.itemView.setOnClickListener((view -> onMovieClick(holder.getAdapterPosition())));
         }
 
     }
@@ -43,5 +66,11 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
     @Override
     public int getItemCount() {
         return favoriteList.size();
+    }
+
+    private void onMovieClick(int position) {
+        if (listener != null) {
+            listener.onMovieClick(position);
+        }
     }
 }

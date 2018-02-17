@@ -11,6 +11,7 @@ import java.util.List;
 
 public class MovieDetails {
 
+    private String id;
     @SerializedName("poster_path")
     private String poster;
     @SerializedName("genres")
@@ -24,6 +25,14 @@ public class MovieDetails {
     private String runtime;
     private String status;
     private String tagline;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public List<MovieGenre> getGenres() {
         return genres;

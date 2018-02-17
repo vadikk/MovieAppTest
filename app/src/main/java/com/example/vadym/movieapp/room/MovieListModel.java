@@ -42,6 +42,29 @@ public class MovieListModel extends AndroidViewModel {
         new deleteAllAsyncTask(db).execute();
     }
 
+    public void deleteByID(String id) {
+        new deleteByIDAsyncTask(db).execute(id);
+    }
+
+    private static class deleteByIDAsyncTask extends AsyncTask<String, Void, Void> {
+
+        private MovieDB db;
+
+        public deleteByIDAsyncTask(MovieDB db) {
+            this.db = db;
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+
+            for (String str : strings) {
+                db.movieDao().deleteByID(str);
+                return null;
+            }
+            return null;
+        }
+    }
+
     private static class deleteAllAsyncTask extends AsyncTask<Void, Void, Void> {
 
         private MovieDB db;
@@ -67,8 +90,10 @@ public class MovieListModel extends AndroidViewModel {
 
         @Override
         protected Void doInBackground(Movie... movies) {
-            // TODO: 2/12/18 Організуй тут правильно, оскільки тут може буть як і 0 фільмів закинуто, так і 10.
-            db.movieDao().delete(movies[0]);
+            for (Movie movie : movies) {
+                db.movieDao().delete(movie);
+                return null;
+            }
             return null;
         }
     }
@@ -83,8 +108,10 @@ public class MovieListModel extends AndroidViewModel {
 
         @Override
         protected Void doInBackground(Movie... movies) {
-            // TODO: 2/12/18 Організуй тут правильно, оскільки тут може буть як і 0 фільмів закинуто, так і 10.
-            db.movieDao().insert(movies[0]);
+            for (Movie movie : movies) {
+                db.movieDao().insert(movie);
+                return null;
+            }
             return null;
         }
     }

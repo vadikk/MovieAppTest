@@ -25,5 +25,21 @@
     <string name="title_activity_main2">Main2Activity</string>
 
     <string name="refresh">Refresh </string>
+    <string name="idValue">111</string>
+    <string name="profile">Profile</string>
+    <string name="registration">Registration</string>
+    <string name="edit_email">e.g: bla@gmail.com</string>
+    <string name="submit">Submit</string>
+    <string name="password">Password:</string>
+    <string name="name">Name:</string>
+    <string name="name_profile">e.g: Pedro</string>
+    <string name="email">Email:</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="name_error">Please enter name</string>
+    <string name="email_error">Please enter email</string>
+    <string name="password_error">Please enter password</string>
+
+    <string name="hello">Hello %1$s!</string>
+    <string name="email_info">Email: %1$s</string>
 
 </resources>

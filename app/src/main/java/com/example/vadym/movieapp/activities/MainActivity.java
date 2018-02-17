@@ -1,6 +1,5 @@
 package com.example.vadym.movieapp.activities;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -26,13 +25,14 @@ import android.widget.TextView;
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
+import com.example.vadym.movieapp.constans.Constant;
 import com.example.vadym.movieapp.data.listMovie.MovieRecyclerAdapter;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieResponce;
 import com.example.vadym.movieapp.room.MovieListModel;
 import com.example.vadym.movieapp.util.ErrorUtil;
+import com.example.vadym.movieapp.util.UpdateListener;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,9 +43,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        OnMovieClickListener, OnStarClickListener {
+        OnStarClickListener, OnUpdateRecyclerAdapterListener {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
@@ -72,12 +73,8 @@ public class MainActivity extends AppCompatActivity
     private int page = 1;
 
     private MovieListModel viewModel;
-    private List<Movie> downloadFirst = new ArrayList<>();
     private Set<String> dbLoadList = new HashSet<>();
 
-
-    // TODO: 2/12/18 І нове завдання - зробити вхід в акаунт + підтягувати дані в navigationView
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +85,7 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
 
+        UpdateListener.setOnUpdateRecyclerListener(this);
         //viewModel.deleteAll();
         subscribeUIMovie();
 
@@ -95,8 +93,7 @@ public class MainActivity extends AppCompatActivity
         manager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(manager);
 
-        adapter = new MovieRecyclerAdapter();
-        adapter.setOnMovieClickListener(this);
+        adapter = new MovieRecyclerAdapter(dbLoadList);
         adapter.setOnClickListener(this);
         recyclerView.setAdapter(adapter);
 
@@ -158,7 +155,9 @@ public class MainActivity extends AppCompatActivity
                     return;
                 for (int i = 0; i < list.size(); i++) {
                     Movie movie = list.get(i);
+                    dbLoadList.add(movie.getId());
                     Log.d("TAG", " Item " + movie.getTitle() + " bool " + movie.isFavorite());
+                    Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
                 }
             }
         });
@@ -179,15 +178,8 @@ public class MainActivity extends AppCompatActivity
                     MovieResponce movieResponce = response.body();
                     total = Integer.parseInt(movieResponce.getTotalResults());
                     List<Movie> movies = movieResponce.getMovieList();
-                    downloadFirst = movies;
 
-                    if (viewModel.getItems().getValue() == null)
-                        return;
-
-                    if (viewModel.getItems().getValue().size() != 0) {
-                        checkListMoview();
-                    }
-                    adapter.addAll(downloadFirst);
+                    adapter.addAll(movies);
                     isLoading = false;
 
                     bar.postDelayed(new Runnable() {
@@ -211,33 +203,6 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    // TODO: 2/12/18 Я ж казав тобі, що операція перебору - не потрібна в цьому плані.
-    // TODO: Set із айдійшками має лежати в адапторі і по ньому він має дивитися, яку іконку ставити.
-    // TODO: А ще набагато краще - вибирати з бази не самі фільми, а тільки їх ID.
-
-    private void checkListMoview() {
-
-        LiveData<List<Movie>> saveInBd = viewModel.getItems();
-
-        if (saveInBd.getValue() == null)
-            return;
-
-        for (int i = 0; i < downloadFirst.size(); i++) {
-            for (int j = 0; j < saveInBd.getValue().size(); j++) {
-
-                Movie downloadMovie = downloadFirst.get(i);
-                Movie saveInBdMovie = saveInBd.getValue().get(j);
-                dbLoadList.add(saveInBdMovie.getId());
-
-                if (dbLoadList.contains(downloadMovie.getId())) {
-                    downloadMovie.setFavorite(true);
-                } else {
-                    downloadMovie.setFavorite(false);
-                }
-            }
-        }
-    }
-
     @Override
     public void onBackPressed() {
         //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -254,27 +219,17 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_films) {
-//            Intent intent = new Intent(FavoriteListActivity.this, MainActivity.class);
-//            startActivity(intent);
-        } else if (id == R.id.nav_favorite) {
+        if (id == R.id.nav_favorite) {
             Intent intent = new Intent(MainActivity.this, FavoriteListActivity.class);
+            startActivity(intent);
+        }else if (id == R.id.nav_login) {
+            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
             startActivity(intent);
         }
 
         // DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onMovieClick(int position) {
-        Intent intent = new Intent(MainActivity.this, MovieDetailsActivity.class);
-        Movie movie = adapter.getMovie(position);
-        if (movie == null)
-            return;
-        intent.putExtra("detail", movie.getId());
-        startActivity(intent);
     }
 
     private void showFailView(String message) {
@@ -297,9 +252,11 @@ public class MainActivity extends AppCompatActivity
 
             if (movie.isFavorite()) {
                 addToBD(movie);
+                adapter.setFavoritID(movie.getId());
+
             } else {
                 deleteFromBD(movie);
-                dbLoadList.remove(movie.getId());
+                adapter.deleteFavoritID(movie.getId());
             }
         }
 
@@ -312,5 +269,12 @@ public class MainActivity extends AppCompatActivity
 
     private void deleteFromBD(Movie movie) {
         viewModel.deleteItem(movie);
+    }
+
+    @Override
+    public void updateRecyclerAdapter(String id) {
+        if (adapter.ifExist(id)) {
+            adapter.deleteFavoritID(id);
+        }
     }
 }

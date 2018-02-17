@@ -5,6 +5,10 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:icon="@android:drawable/ic_lock_power_off"
+            android:id="@+id/nav_login"
+            android:title="@string/profile"/>
+        <item
             android:id="@+id/nav_films"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/film" />

@@ -1,147 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.vadym.movieapp.activities.MovieDetailsActivity">
 
-    <RelativeLayout
+    <ScrollView
+        android:id="@+id/scroll"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        android:orientation="vertical">
-
-        <android.support.v7.widget.CardView
-            android:id="@+id/cardErrorView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/appBarLayout"
-            android:visibility="invisible">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/error"
-                    android:layout_gravity="center_horizontal" />
-
-                <TextView
-                    android:id="@+id/errorTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:textAlignment="center"
-                    android:layout_marginTop="5dp"
-                    android:textSize="16sp" />
-
-            </LinearLayout>
-
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.CardView
-            android:id="@+id/cardViewDet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="5dp">
-
-                <ImageView
-                    android:id="@+id/movieImageDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/ic_launcher_background" />
-
-
-                <TextView
-                    android:id="@+id/movieTitleDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@id/movieImageDetail"
-                    android:paddingLeft="5dp"
-                    android:text="@string/movie_name"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/movieGenreDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/movieTitleDetail"
-                    android:layout_toRightOf="@id/movieImageDetail"
-                    android:paddingLeft="5dp"
-                    android:text="@string/genre" />
-
-                <TextView
-                    android:id="@+id/movieReleaseDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/movieGenreDetail"
-                    android:layout_toRightOf="@id/movieImageDetail"
-                    android:paddingLeft="5dp"
-                    android:text="@string/release_date" />
-
-                <TextView
-                    android:id="@+id/movieBudgetDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/movieReleaseDetail"
-                    android:layout_toRightOf="@id/movieImageDetail"
-                    android:paddingLeft="5dp"
-                    android:text="@string/budget" />
-
-                <TextView
-                    android:id="@+id/movieRuntimeDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/movieBudgetDetail"
-                    android:layout_toRightOf="@id/movieImageDetail"
-                    android:paddingLeft="5dp"
-                    android:text="@string/runtime" />
-
-                <TextView
-                    android:id="@+id/movieStatusDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/movieRuntimeDetail"
-                    android:layout_toRightOf="@id/movieImageDetail"
-                    android:paddingLeft="5dp"
-                    android:text="@string/status" />
-
-            </RelativeLayout>
-        </android.support.v7.widget.CardView>
+        android:layout_height="match_parent">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:background="@color/cardview_light_background"
-            android:layout_below="@id/cardViewDet">
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/overviewDet"
-                android:layout_width="wrap_content"
+            <android.support.v7.widget.CardView
+                android:id="@+id/cardErrorView"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:text="@string/overview" />
+                android:layout_below="@id/appBarLayout"
+                android:visibility="invisible">
 
-            <TextView
-                android:id="@+id/tagDet"
-                android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:background="@drawable/error" />
+
+                    <TextView
+                        android:id="@+id/errorTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="5dp"
+                        android:textAlignment="center"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/cardViewDet"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/overviewDet"
-                android:padding="5dp"
-                android:text="@string/tag" />
+                android:layout_margin="10dp"
+                android:visibility="invisible">
 
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="10dp">
+
+                    <FrameLayout
+                        android:id="@+id/frameLayout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/movieImageDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/ic_launcher_background" />
+
+                        <ImageButton
+                            android:id="@+id/imageButtonDetail"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="top|right"
+                            android:background="@drawable/ic_launcher_white" />
+
+                    </FrameLayout>
+
+
+                    <TextView
+                        android:id="@+id/movieTitleDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toRightOf="@id/frameLayout"
+                        android:paddingLeft="5dp"
+                        android:text="@string/movie_name"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/movieGenreDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/movieTitleDetail"
+                        android:layout_toRightOf="@id/frameLayout"
+                        android:paddingLeft="5dp"
+                        android:text="@string/genre" />
+
+                    <TextView
+                        android:id="@+id/movieReleaseDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/movieGenreDetail"
+                        android:layout_toRightOf="@id/frameLayout"
+                        android:paddingLeft="5dp"
+                        android:text="@string/release_date" />
+
+                    <TextView
+                        android:id="@+id/movieBudgetDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/movieReleaseDetail"
+                        android:layout_toRightOf="@id/frameLayout"
+                        android:paddingLeft="5dp"
+                        android:text="@string/budget" />
+
+                    <TextView
+                        android:id="@+id/movieRuntimeDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/movieBudgetDetail"
+                        android:layout_toRightOf="@id/frameLayout"
+                        android:paddingLeft="5dp"
+                        android:text="@string/runtime" />
+
+                    <TextView
+                        android:id="@+id/movieStatusDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/movieRuntimeDetail"
+                        android:layout_toRightOf="@id/frameLayout"
+                        android:paddingLeft="5dp"
+                        android:text="@string/status" />
+
+                </RelativeLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/cardViewDet2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cardViewDet"
+                android:layout_margin="10dp"
+                android:background="@color/cardview_light_background"
+                android:visibility="invisible">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp">
+
+                    <TextView
+                        android:id="@+id/overviewDet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:text="@string/overview" />
+
+                    <TextView
+                        android:id="@+id/tagDet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/overviewDet"
+                        android:padding="5dp"
+                        android:text="@string/tag" />
+
+                </RelativeLayout>
+            </android.support.v7.widget.CardView>
 
         </RelativeLayout>
 
-    </RelativeLayout>
-</ScrollView>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressBarDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
+        android:visibility="visible" />
+
+
+</RelativeLayout>
