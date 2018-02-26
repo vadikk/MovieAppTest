@@ -8,6 +8,7 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
 import com.example.vadym.movieapp.model.Movie;
+import com.example.vadym.movieapp.service.Genres;
 
 import java.util.List;
 
@@ -40,6 +41,12 @@ public interface MovieDao {
 
     @Query("SELECT * FROM movie WHERE id =:ids")
     Movie getById(int ids);
+
+    @Insert(onConflict = REPLACE)
+    void insertGenres(Genres.Genre genre);
+
+    @Query("SELECT * FROM genre")
+    LiveData<List<Genres.Genre>> getAllGenre();
 
 
 }

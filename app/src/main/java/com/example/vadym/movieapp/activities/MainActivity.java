@@ -3,7 +3,9 @@ package com.example.vadym.movieapp.activities;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -30,6 +32,8 @@ import com.example.vadym.movieapp.data.listMovie.MovieRecyclerAdapter;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieResponce;
 import com.example.vadym.movieapp.room.MovieListModel;
+import com.example.vadym.movieapp.service.GenreService;
+import com.example.vadym.movieapp.service.Genres;
 import com.example.vadym.movieapp.util.ErrorUtil;
 import com.example.vadym.movieapp.util.UpdateListener;
 
@@ -74,20 +78,25 @@ public class MainActivity extends AppCompatActivity
 
     private MovieListModel viewModel;
     private Set<String> dbLoadList = new HashSet<>();
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
 
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         UpdateListener.setOnUpdateRecyclerListener(this);
         //viewModel.deleteAll();
-        subscribeUIMovie();
+
+        startService(new Intent(this, GenreService.class));
+
 
         LinearLayoutManager manager = new LinearLayoutManager(this);
         manager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -144,6 +153,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+        subscribeUIMovie();
 
     }
 
@@ -156,19 +166,57 @@ public class MainActivity extends AppCompatActivity
                 for (int i = 0; i < list.size(); i++) {
                     Movie movie = list.get(i);
                     dbLoadList.add(movie.getId());
-                    Log.d("TAG", " Item " + movie.getTitle() + " bool " + movie.isFavorite());
-                    Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
+//                    Log.d("TAG", " Item " + movie.getTitle() + " bool " + movie.isFavorite());
+//                    Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
+                }
+            }
+        });
+
+        viewModel.getGenres().observe(MainActivity.this, new Observer<List<Genres.Genre>>() {
+            @Override
+            public void onChanged(@Nullable List<Genres.Genre> genres) {
+                if (genres == null)
+                    return;
+
+                Log.d("TAG","SIze " + genres.size());
+//                for (int i = 0; i < genres.size(); i++) {
+//                    Genres.Genre gen = genres.get(i);
+//                    Log.d("TAG", " ID " + gen.getId() + " name " + gen.getName());
+////                    Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
+//                }
+                //Глянь в чем заноза!!!
+                for (Genres.Genre gen:genres) {
+                    Log.d("TAG", " ID " + gen.getId() + " name " + gen.getName());
                 }
             }
         });
 
     }
 
+    private String getLanguage(){
+        String language = null;
+
+        int id = sharedPreferences.getInt("language",20);
+        switch (id){
+            case 0:
+                language = "en";
+                return language;
+            case 1:
+                language = "de";
+                return language;
+            case 2:
+                language = "ru";
+                return language;
+            default:
+                return null;
+        }
+    }
+
     private void loadMoreData(String searchText, int page) {
 
         cardView.setVisibility(View.INVISIBLE);
         bar.setVisibility(View.VISIBLE);
-        Call<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getMovie(searchText, page);
+        Call<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getMovie(searchText, page,getLanguage());
         responseCall.enqueue(new Callback<MovieResponce>() {
             @Override
             public void onResponse(Call<MovieResponce> call, Response<MovieResponce> response) {
@@ -224,6 +272,9 @@ public class MainActivity extends AppCompatActivity
             startActivity(intent);
         }else if (id == R.id.nav_login) {
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        }else if (id == R.id.nav_settings) {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(intent);
         }
 

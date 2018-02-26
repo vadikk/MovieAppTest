@@ -41,5 +41,9 @@
 
     <string name="hello">Hello %1$s!</string>
     <string name="email_info">Email: %1$s</string>
+    <string name="settings">Settings</string>
+    <string name="languages">Language Settings</string>
+    <string name="en_language">Select language</string>
+    <string name="english">Language</string>
 
 </resources>

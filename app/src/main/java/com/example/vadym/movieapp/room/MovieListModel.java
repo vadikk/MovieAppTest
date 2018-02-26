@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.example.vadym.movieapp.model.Movie;
+import com.example.vadym.movieapp.service.Genres;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ import java.util.List;
 public class MovieListModel extends AndroidViewModel {
 
     private final LiveData<List<Movie>> items;
+    private final LiveData<List<Genres.Genre>> genres;
     private MovieDB db;
 
     public MovieListModel(@NonNull Application application) {
@@ -24,11 +26,14 @@ public class MovieListModel extends AndroidViewModel {
 
         db = MovieDB.getInstance(getApplication());
         items = db.movieDao().getAll();
+        genres = db.movieDao().getAllGenre();
     }
 
     public LiveData<List<Movie>> getItems() {
         return items;
     }
+
+    public LiveData<List<Genres.Genre>> getGenres(){return genres;}
 
     public void insertItem(Movie movie) {
         new insertAsyncTask(db).execute(movie);
@@ -45,6 +50,29 @@ public class MovieListModel extends AndroidViewModel {
     public void deleteByID(String id) {
         new deleteByIDAsyncTask(db).execute(id);
     }
+
+
+    public void insertGenre(Genres.Genre genre){new insertGenresAsyncTask(db).execute(genre);}
+
+    private static class insertGenresAsyncTask extends AsyncTask<Genres.Genre,Void,Void>{
+
+        private MovieDB db;
+
+        public insertGenresAsyncTask(MovieDB db) {
+            this.db = db;
+        }
+
+        @Override
+        protected Void doInBackground(Genres.Genre... genres) {
+            for (Genres.Genre gen:genres) {
+                db.movieDao().insertGenres(gen);
+                return null;
+            }
+            return null;
+        }
+    }
+
+
 
     private static class deleteByIDAsyncTask extends AsyncTask<String, Void, Void> {
 

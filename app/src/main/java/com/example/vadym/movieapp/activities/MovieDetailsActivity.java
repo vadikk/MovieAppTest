@@ -2,7 +2,9 @@ package com.example.vadym.movieapp.activities;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
@@ -79,6 +81,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
     private String titleMovie = null;
     private String image = null;
     private String overviewDet = null;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +90,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
 
         ButterKnife.bind(this);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
         Bundle bundle = getIntent().getExtras();
 
@@ -185,9 +189,28 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
         titleMovie = movieDetails.getTitle();
     }
 
+    private String getLanguage(){
+        String language = null;
+
+        int id = sharedPreferences.getInt("language",20);
+        switch (id){
+            case 0:
+                language = "en";
+                return language;
+            case 1:
+                language = "de";
+                return language;
+            case 2:
+                language = "ru";
+                return language;
+            default:
+                return null;
+        }
+    }
+
     private void getMovieDetail(String id) {
 
-        Call<MovieDetails> detailsCall = MovieRetrofit.getRetrofit().getMovieDetails(id);
+        Call<MovieDetails> detailsCall = MovieRetrofit.getRetrofit().getMovieDetails(id,getLanguage());
         detailsCall.enqueue(new Callback<MovieDetails>() {
             @Override
             public void onResponse(Call<MovieDetails> call, Response<MovieDetails> response) {
