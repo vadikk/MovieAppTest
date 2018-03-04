@@ -249,6 +249,9 @@ public class MainActivity extends AppCompatActivity
 
         if (compositeDB != null)
             compositeDB.clear();
+
+        if(compositeDBGenres!=null)
+            compositeDBGenres.clear();
         super.onDestroy();
     }
 
