@@ -10,6 +10,7 @@
     <string name="runtime">Runtime: %1$s%2$s</string>
     <string name="status">Status: %s</string>
     <string name="overview">Overview: %s</string>
+    <string name="overview2">Overview: n/a</string>
     <string name="tag">Tag: %s</string>
     <string name="genre">Category:</string>
     <string name="title_activity_main">MainActivity</string>

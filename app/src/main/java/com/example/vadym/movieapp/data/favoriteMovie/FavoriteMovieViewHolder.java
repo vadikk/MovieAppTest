@@ -43,7 +43,11 @@ public class FavoriteMovieViewHolder extends RecyclerView.ViewHolder {
 
     public void setText(Movie movie) {
         title.setText(movie.getTitle());
-        overview.setText(itemView.getResources().getString(R.string.overview, movie.getOverview()));
+
+        if ("".equals(movie.getOverview()))
+            overview.setText(itemView.getResources().getString(R.string.overview2));
+        else
+            overview.setText(itemView.getResources().getString(R.string.overview, movie.getOverview()));
 
     }
 }

@@ -1,10 +1,8 @@
 package com.example.vadym.movieapp.activities;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,6 +19,9 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class FavoriteListActivity extends AppCompatActivity implements OnMovieClickListener {
 
@@ -30,6 +31,7 @@ public class FavoriteListActivity extends AppCompatActivity implements OnMovieCl
     private FavoriteMovieAdapter adapter;
     private List<Movie> favoriteMovieList = new ArrayList<>();
     private MovieListModel viewModel;
+    private CompositeDisposable compositeDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,7 @@ public class FavoriteListActivity extends AppCompatActivity implements OnMovieCl
 
         ButterKnife.bind(this);
 
+        compositeDB = new CompositeDisposable();
         LinearLayoutManager manager = new LinearLayoutManager(this);
         manager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(manager);
@@ -47,6 +50,14 @@ public class FavoriteListActivity extends AppCompatActivity implements OnMovieCl
         subscribeUIMovie();
         deleteItemBySwipe();
     }
+
+    @Override
+    protected void onDestroy() {
+        if (compositeDB != null)
+            compositeDB.clear();
+        super.onDestroy();
+    }
+
 
     private void deleteItemBySwipe() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
@@ -75,23 +86,17 @@ public class FavoriteListActivity extends AppCompatActivity implements OnMovieCl
 
     private void subscribeUIMovie() {
 
-        viewModel.getItems().observe(FavoriteListActivity.this, new Observer<List<Movie>>() {
-            @Override
-            public void onChanged(@Nullable List<Movie> list) {
+        compositeDB.add(viewModel.getItems().subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(list -> {
 
-                if (list != null && viewModel.getItems().getValue() != null) {
-                    int size = viewModel.getItems().getValue().size();
-                }
+                    if (viewModel != null)
+                        favoriteMovieList = list;
 
-                if (viewModel != null)
-                    favoriteMovieList = viewModel.getItems().getValue();
-
-                adapter = new FavoriteMovieAdapter(favoriteMovieList);
-                adapter.setOnMovieClickListener(FavoriteListActivity.this);
-                recyclerView.setAdapter(adapter);
-
-            }
-        });
+                    adapter = new FavoriteMovieAdapter(favoriteMovieList);
+                    adapter.setOnMovieClickListener(FavoriteListActivity.this);
+                    recyclerView.setAdapter(adapter);
+                }));
     }
 
     @Override

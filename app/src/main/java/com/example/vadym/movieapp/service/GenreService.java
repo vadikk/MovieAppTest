@@ -1,30 +1,28 @@
 package com.example.vadym.movieapp.service;
 
 import android.app.Service;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.room.MovieDB;
-import com.example.vadym.movieapp.room.MovieDao;
-import com.example.vadym.movieapp.room.MovieListModel;
 
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class GenreService extends Service {
 
     private SharedPreferences sharedPreferences;
     private MovieDB db;
+    private CompositeDisposable compositeDisposable;
 
     public GenreService() {
 
@@ -35,8 +33,10 @@ public class GenreService extends Service {
         super.onCreate();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         db = MovieDB.getInstance(getApplication());
+        compositeDisposable = new CompositeDisposable();
 
     }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -54,14 +54,16 @@ public class GenreService extends Service {
 
     @Override
     public void onDestroy() {
+        if (compositeDisposable != null)
+            compositeDisposable.clear();
         super.onDestroy();
     }
 
-    private String getLanguage(){
+    private String getLanguage() {
         String language = null;
 
-        int id = sharedPreferences.getInt("language",20);
-        switch (id){
+        int id = sharedPreferences.getInt("language", 20);
+        switch (id) {
             case 0:
                 language = "en";
                 return language;
@@ -76,56 +78,28 @@ public class GenreService extends Service {
         }
     }
 
-    private void getAllGenres(){
+    private void getAllGenres() {
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Flowable<Genres> genresFlowable = MovieRetrofit.getRetrofit().getGenres(getLanguage())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
 
-                Call<Genres> genresCall = MovieRetrofit.getRetrofit().getGenres(getLanguage());
-                genresCall.enqueue(new Callback<Genres>() {
-                    @Override
-                    public void onResponse(Call<Genres> call, Response<Genres> response) {
-                        if(response.isSuccessful()){
-                            Genres genres = response.body();
-                            List<Genres.Genre> genreList = genres.getGenres();
-                            for (Genres.Genre gen:genreList) {
-                                insertGenre(gen);
-                            }
-//                            Log.d("TAG","SizeG " + genres.getGenres().size());
-                            stopSelf();
-                        }else {
-                            stopSelf();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<Genres> call, Throwable t) {
-
-                    }
-                });
+        Disposable disposable = genresFlowable.subscribe(response -> {
+            Genres genres = response;
+            List<Genres.Genre> genreList = genres.getGenres();
+            for (Genres.Genre gen : genreList) {
+                insertGenre(gen);
             }
-        }).start();
+            stopSelf();
+        });
+        compositeDisposable.add(disposable);
 
     }
 
-    public void insertGenre(Genres.Genre genre){new insertGenresAsyncTask(db).execute(genre);}
-
-    private static class insertGenresAsyncTask extends AsyncTask<Genres.Genre,Void,Void> {
-
-        private MovieDB db;
-
-        public insertGenresAsyncTask(MovieDB db) {
-            this.db = db;
-        }
-
-        @Override
-        protected Void doInBackground(Genres.Genre... genres) {
-            for (Genres.Genre gen:genres) {
-                db.movieDao().insertGenres(gen);
-                return null;
-            }
-            return null;
-        }
+    public void insertGenre(Genres.Genre genre) {
+        Completable.fromAction(() -> {
+            db.movieDao().insertGenres(genre);
+        }).subscribeOn(Schedulers.io()).subscribe();
     }
+
 }

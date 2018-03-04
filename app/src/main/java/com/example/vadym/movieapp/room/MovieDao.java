@@ -1,6 +1,5 @@
 package com.example.vadym.movieapp.room;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
@@ -11,6 +10,8 @@ import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.service.Genres;
 
 import java.util.List;
+
+import io.reactivex.Flowable;
 
 import static android.arch.persistence.room.OnConflictStrategy.REPLACE;
 
@@ -37,7 +38,7 @@ public interface MovieDao {
     void update(Movie movie);
 
     @Query("SELECT * FROM movie")
-    LiveData<List<Movie>> getAll();
+    Flowable<List<Movie>> getAll();
 
     @Query("SELECT * FROM movie WHERE id =:ids")
     Movie getById(int ids);
@@ -46,7 +47,7 @@ public interface MovieDao {
     void insertGenres(Genres.Genre genre);
 
     @Query("SELECT * FROM genre")
-    LiveData<List<Genres.Genre>> getAllGenre();
+    Flowable<List<Genres.Genre>> getAllGenre();
 
 
 }
