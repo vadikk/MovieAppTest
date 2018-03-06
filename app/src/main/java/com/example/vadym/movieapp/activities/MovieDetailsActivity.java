@@ -89,6 +89,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
 
+        // TODO: 3/6/18 В мене кард вью хз ан скільки вилізла вниз.
         ButterKnife.bind(this);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -114,6 +115,8 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
 
     @Override
     public void onClick(View view) {
+        // TODO: 3/6/18 Треба зкидувати прапори.
+
         if (setID.contains(movieId)) {
             isClick = true;
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
@@ -134,6 +137,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(list -> {
+                    //TODO: flatMap
                     for (int i = 0; i < list.size(); i++) {
                         Movie movie = list.get(i);
                         setID.add(movie.getId());
@@ -193,9 +197,10 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
 
     private String getLanguage() {
         String language = null;
-
+// TODO: 3/6/18 Чого тут 20?
         int id = sharedPreferences.getInt("language", 20);
         switch (id) {
+            // TODO: 3/6/18 зроби нормально світч
             case 0:
                 language = "en";
                 return language;
@@ -205,6 +210,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
             case 2:
                 language = "ru";
                 return language;
+            // TODO: 3/6/18 зроби дефолтну мову
             default:
                 return null;
         }
@@ -223,6 +229,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements View.OnCl
 
             List<String> names = new ArrayList<>();
 
+            // TODO: 3/6/18 перепиши якось це покраще
             for (MovieDetails.MovieGenre genre : movieDetails.getGenres()) {
                 names.add(genre.getName());
             }

@@ -50,6 +50,7 @@ public class SettingsFragment extends PreferenceFragment
         Preference preference = findPreference(s);
         if (preference instanceof ListPreference) {
             ListPreference listPreference = (ListPreference) findPreference(s);
+            // TODO: 3/6/18 Краще мати якусь дефолтну мову.
                 int index = listPreference.findIndexOfValue(sharedPreferences.getString(s,""));
                 editor = preferences.edit();
                 editor.putInt("language",index).apply();

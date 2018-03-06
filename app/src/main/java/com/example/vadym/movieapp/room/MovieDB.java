@@ -21,6 +21,7 @@ public abstract class MovieDB extends RoomDatabase {
     public static MovieDB getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(context, MovieDB.class, DB_NAME)
+                    // TODO: 3/6/18 рано чи пізно тре буде писати міграції.
                     .fallbackToDestructiveMigration().build();
         }
         return instance;

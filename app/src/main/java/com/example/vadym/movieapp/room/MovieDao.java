@@ -46,6 +46,7 @@ public interface MovieDao {
     @Insert(onConflict = REPLACE)
     void insertGenres(Genres.Genre genre);
 
+    // TODO: 3/6/18 Тут краще заюзати Single чи Maybe. Глянь на ці типи.
     @Query("SELECT * FROM genre")
     Flowable<List<Genres.Genre>> getAllGenre();
 

@@ -16,6 +16,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // TODO: 3/6/18 Давай хай сплеш буде 3 секунди. боякось швидко він пролетів.
         Intent intent = new Intent(this,MainActivity.class);
         startActivity(intent);
         finish();

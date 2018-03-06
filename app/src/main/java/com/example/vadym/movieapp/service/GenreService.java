@@ -73,6 +73,7 @@ public class GenreService extends Service {
             case 2:
                 language = "ru";
                 return language;
+            // TODO: 3/6/18 Краще тут взяти англ по-дефолту, щоб на всякий випадок поверталося англійською. Або, якщо на сервері дефолтно англійською, можна лишити нул.
             default:
                 return null;
         }
@@ -90,6 +91,9 @@ public class GenreService extends Service {
             for (Genres.Genre gen : genreList) {
                 insertGenre(gen);
             }
+            // TODO: 3/6/18 Тут такий прикол - в тебе додавання в базу відбувається асинхронно і може виконуватися довше і то не гарантує, що закінчиться все до твого виклику stopSelf.
+            // TODO: Краще зробити це в одному комплексі. Наприклад, отримати жанри, кожного із жанрів додати в базу. а при сабскрайбі - зупинити сервіс.
+            //TODO: глянь таку штуку як flatMap.
             stopSelf();
         });
         compositeDisposable.add(disposable);

@@ -19,6 +19,7 @@ public class MovieResponce {
     @SerializedName("total_pages")
     private String totalPages;
     @Nullable
+    // TODO: 3/6/18 Ти ж тут ініціалізуєш відразу список, нема толку робить його Nullable
     private List<Movie> results = new ArrayList<>();
 
     public String getPage() {

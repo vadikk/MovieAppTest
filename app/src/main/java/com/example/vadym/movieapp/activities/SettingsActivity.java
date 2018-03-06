@@ -15,6 +15,7 @@ import com.example.vadym.movieapp.preference.SettingsFragment;
 public class SettingsActivity extends AppCompatActivity {
 
 
+    // TODO: 3/6/18 В тебе тут нема тулбара і можливості повернутися наад через програму.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

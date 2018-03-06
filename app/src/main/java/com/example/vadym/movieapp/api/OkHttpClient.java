@@ -20,6 +20,7 @@ public class OkHttpClient {
         okhttp3.OkHttpClient.Builder okhttp = new okhttp3.OkHttpClient.Builder();
         okhttp.addInterceptor(new Interceptor() {
             @Override
+            // TODO: 3/6/18 Тут краще інтерсептор сам в окремий клас винести.
             public Response intercept(Interceptor.Chain chain) throws IOException {
                 Request original = chain.request();
                 HttpUrl originalHttpUrl = original.url();

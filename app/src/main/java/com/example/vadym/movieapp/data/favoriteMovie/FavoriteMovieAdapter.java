@@ -21,6 +21,8 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
     private List<Movie> favoriteList;
     private OnMovieClickListener listener;
 
+    // TODO: 3/6/18 Не анйкращий варіант - краще створити адаптер пустим, засетити його, а потім додавати/видаляти з нього.
+    
     public FavoriteMovieAdapter(List<Movie> list) {
         favoriteList = list;
     }
@@ -37,6 +39,7 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
         favoriteList.remove(position);
     }
 
+    // TODO: 3/6/18 Намагайся такі куск робити nullable, потім студя тобі буде підсвічувати місця, де може буть щось нулабл. 
     public Movie getMovie(int position) {
         if (position < 0 || position >= getItemCount()) {
             return null;
@@ -52,6 +55,7 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
 
     @Override
     public void onBindViewHolder(FavoriteMovieViewHolder holder, int position) {
+        // TODO: 3/6/18 Краще юзай holder.getAdapterPosition()
         Movie movie = favoriteList.get(position);
 
         if (movie != null) {

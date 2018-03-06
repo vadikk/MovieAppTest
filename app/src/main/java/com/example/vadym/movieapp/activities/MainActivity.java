@@ -86,6 +86,10 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
+        // TODO: 3/6/18 При поверненні назад із favourite - не зкидує селект із favourite.
+        // TODO: 3/6/18 При повторному вході - не показує інфу про користувача.
+        // TODO: 3/6/18 Клін на фільм не працює.
+
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
 
         ButterKnife.bind(this);
@@ -165,7 +169,7 @@ public class MainActivity extends AppCompatActivity
 
         Flowable<List<Movie>> flowable = viewModel.getItems()
                 .subscribeOn(Schedulers.io());
-
+// TODO: 3/6/18 flatMap тобі в допомогу.
         compositeDB.add(flowable.subscribe(movieList -> {
             if (movieList == null)
                 return;
@@ -180,6 +184,7 @@ public class MainActivity extends AppCompatActivity
         }));
 
         //Глянь чего более раза выводит это
+        // TODO: 3/6/18 Тому що ти  спочатку вижираєш збережені дані, а потім срвіс базу оновлює і ти другий раз отримуєш дані. 
         compositeDBGenres.add(viewModel.getGenres().observeOn(Schedulers.io()).subscribe(list -> {
             if (list == null)
                 return;
@@ -195,7 +200,7 @@ public class MainActivity extends AppCompatActivity
 
     private String getLanguage() {
         String language = null;
-
+        // TODO: 3/6/18 При чому тут 20??? 
         int id = sharedPreferences.getInt("language", 20);
         switch (id) {
             case 0:
@@ -207,6 +212,7 @@ public class MainActivity extends AppCompatActivity
             case 2:
                 language = "ru";
                 return language;
+            // TODO: 3/6/18 Встав дефолтну мову. 
             default:
                 return null;
         }
@@ -303,6 +309,7 @@ public class MainActivity extends AppCompatActivity
         Movie movie = adapter.getMovie(position);
         if (movie != null) {
             movie.setFavorite(!movie.isFavorite());
+            // TODO: 3/6/18 Краще спочатку робити щось в адаптері(видаляти елемент, додавати), а потім вже нотифікувати самого адаптера. 
             adapter.notifyItemChanged(position);
 
             if (movie.isFavorite()) {

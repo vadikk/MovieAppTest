@@ -36,6 +36,7 @@ public class FavoriteListActivity extends AppCompatActivity implements OnMovieCl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // TODO: 3/6/18 Нема можливості повернутися назад в програмі.
         setContentView(R.layout.activity_favorite_list);
 
         ButterKnife.bind(this);
@@ -105,6 +106,7 @@ public class FavoriteListActivity extends AppCompatActivity implements OnMovieCl
         Movie movie = adapter.getMovie(position);
         if (movie == null)
             return;
+        // TODO: 3/6/18 Крще такі константи виносити статично в ту актівіті, яку ти викликаєш, типу  MovieDetailsActivity.EXTRA_FILM_ID
         intent.putExtra("detail", movie.getId());
         startActivity(intent);
     }

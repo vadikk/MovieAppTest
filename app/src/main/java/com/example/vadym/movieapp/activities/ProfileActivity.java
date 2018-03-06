@@ -47,6 +47,11 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // TODO: 3/6/18 А де вхід? чому я не можу зайти в профіль, якщо я вже був зареєстрованим?
+        // TODO: 3/6/18 Рагульний дизайн, поля - не рівні.
+        // TODO: 3/6/18 Не можна повернутися назад в програмі.
+        // TODO: 3/6/18 При поверненні назад - не оновлюж інфу на дровері.
+        
         ButterKnife.bind(this);
 
         init();
