@@ -81,7 +81,6 @@ public class GenreService extends Service {
     private void getAllGenres() {
 
         Flowable<Genres> genresFlowable = MovieRetrofit.getRetrofit().getGenres(getLanguage())
-                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
 
         Disposable disposable = genresFlowable.subscribe(response -> {

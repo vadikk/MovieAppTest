@@ -15,21 +15,23 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.MovieRetrofit;
+import com.example.vadym.movieapp.constans.Constant;
 import com.example.vadym.movieapp.data.listMovie.MovieRecyclerAdapter;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieResponce;
 import com.example.vadym.movieapp.room.MovieListModel;
 import com.example.vadym.movieapp.service.GenreService;
 import com.example.vadym.movieapp.service.Genres;
+import com.example.vadym.movieapp.util.BottomSheet;
 import com.example.vadym.movieapp.util.UpdateListener;
 
 import java.util.HashSet;
@@ -47,7 +49,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        OnStarClickListener, OnUpdateRecyclerAdapterListener {
+        OnStarClickListener, OnUpdateRecyclerAdapterListener, OnBottomSheetListener {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
@@ -55,12 +57,15 @@ public class MainActivity extends AppCompatActivity
     ProgressBar bar;
     @BindView(R.id.search)
     SearchView searchView;
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
+    //    @BindView(R.id.toolbar)
+//    Toolbar toolbar;
     @BindView(R.id.cardErrorView)
     CardView cardView;
     @BindView(R.id.errorTitle)
     TextView errorText;
+    @BindView(R.id.filterButton)
+    ImageButton filterBtn;
+
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
@@ -71,6 +76,8 @@ public class MainActivity extends AppCompatActivity
     private String searchText;
     private int total = 0;
     private boolean isLoading = false;
+    private boolean isSearch = false;
+    private boolean isfilter = false;
     private int page = 1;
 
     private MovieListModel viewModel;
@@ -79,6 +86,7 @@ public class MainActivity extends AppCompatActivity
     private CompositeDisposable compositeDisposable;
     private CompositeDisposable compositeDB;
     private CompositeDisposable compositeDBGenres;
+    private BottomSheet bottomSheet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,11 +97,14 @@ public class MainActivity extends AppCompatActivity
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
 
         ButterKnife.bind(this);
-        setSupportActionBar(toolbar);
+//        setSupportActionBar(toolbar);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         compositeDisposable = new CompositeDisposable();
         compositeDB = new CompositeDisposable();
         compositeDBGenres = new CompositeDisposable();
+
+        bottomSheet = new BottomSheet();
+        bottomSheet.setBottomListener(this);
 
         UpdateListener.setOnUpdateRecyclerListener(this);
         //viewModel.deleteAll();
@@ -111,7 +122,7 @@ public class MainActivity extends AppCompatActivity
 
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -125,6 +136,7 @@ public class MainActivity extends AppCompatActivity
                 adapter.clear();
                 page = 1;
                 isLoading = true;
+                isSearch = true;
                 loadMoreData(query, page);
                 return false;
             }
@@ -151,20 +163,25 @@ public class MainActivity extends AppCompatActivity
                     isLoading = true;
                 }
 
-                if (isLoading)
+                if (isLoading && isSearch)
                     loadMoreData(searchText, page);
+                if (isLoading && isfilter)
+                    loadMoreFilterData(page, bottomSheet.getVoteCountText(), bottomSheet.getYearText(), bottomSheet.getRuntimeText());
 
             }
         });
         subscribeUIMovie();
 
+        filterBtn.setOnClickListener(view -> {
+            showDetailDialog();
 
+        });
     }
 
     private void subscribeUIMovie() {
 
         Flowable<List<Movie>> flowable = viewModel.getItems()
-                .subscribeOn(Schedulers.io());
+                .observeOn(AndroidSchedulers.mainThread());
 
         compositeDB.add(flowable.subscribe(movieList -> {
             if (movieList == null)
@@ -173,14 +190,14 @@ public class MainActivity extends AppCompatActivity
                 Movie movie = movieList.get(i);
                 dbLoadList.add(movie.getId());
 //                Log.d("TAG", " Item " + movie.getTitle() + " bool " + movie.isFavorite());
-//                Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
+                Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
             }
         }, error -> {
             Log.d("TAG", "Error");
         }));
 
         //Глянь чего более раза выводит это
-        compositeDBGenres.add(viewModel.getGenres().observeOn(Schedulers.io()).subscribe(list -> {
+        compositeDBGenres.add(viewModel.getGenres().observeOn(AndroidSchedulers.mainThread()).subscribe(list -> {
             if (list == null)
                 return;
 
@@ -250,8 +267,9 @@ public class MainActivity extends AppCompatActivity
         if (compositeDB != null)
             compositeDB.clear();
 
-        if(compositeDBGenres!=null)
+        if (compositeDBGenres != null)
             compositeDBGenres.clear();
+
         super.onDestroy();
     }
 
@@ -330,5 +348,51 @@ public class MainActivity extends AppCompatActivity
         if (adapter.ifExist(id)) {
             adapter.deleteFavoritID(id);
         }
+    }
+
+
+    private void showDetailDialog() {
+
+        bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
+    }
+
+    @Override
+    public void submit() {
+        adapter.clear();
+        page = 1;
+        loadMoreFilterData(page, bottomSheet.getVoteCountText(), bottomSheet.getYearText(), bottomSheet.getRuntimeText());
+    }
+
+    private void loadMoreFilterData(int page, String vote, String year, String runTime) {
+        cardView.setVisibility(View.INVISIBLE);
+        bar.setVisibility(View.VISIBLE);
+        isLoading = true;
+        isfilter = true;
+        Flowable<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getDiscoverMovie(getLanguage(), Constant.SORT,
+                "false", "false", page, vote, year, runTime)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        Disposable disposable = responseCall.subscribe(movieResponce -> {
+
+            MovieResponce responce = movieResponce;
+            total = Integer.parseInt(movieResponce.getTotalResults());
+            Log.d("TAG", "total " + total);
+            List<Movie> movies = movieResponce.getMovieList();
+
+            adapter.addAll(movies);
+            isLoading = false;
+            bar.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    bar.setVisibility(View.GONE);
+                }
+            }, 1000);
+        }, error -> {
+//            ApiError errorMessage = ErrorUtil.parseError(error);
+            Log.d("TAG", error.getMessage());
+            showFailView(error.getMessage());
+        });
+        compositeDisposable.add(disposable);
     }
 }
