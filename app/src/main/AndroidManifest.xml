@@ -14,11 +14,13 @@
         <activity
             android:name=".activities.FavoriteListActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:parentActivityName=".activities.MainActivity"/>
         <activity
             android:name=".activities.MovieDetailsActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:parentActivityName=".activities.MainActivity"/>
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/title_activity_main"
@@ -27,8 +29,12 @@
         <activity
             android:name=".activities.ProfileActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
-        <activity android:name=".activities.SettingsActivity" />
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:parentActivityName=".activities.MainActivity"/>
+        <activity android:name=".activities.SettingsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:parentActivityName=".activities.MainActivity"/>
         <activity
             android:name=".activities.SplashActivity"
             android:screenOrientation="portrait"

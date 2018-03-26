@@ -1,5 +1,6 @@
 package com.example.vadym.movieapp.data.favoriteMovie;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.activities.OnMovieClickListener;
 import com.example.vadym.movieapp.model.Movie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -18,13 +20,16 @@ import java.util.List;
 
 public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieViewHolder> {
 
-    private List<Movie> favoriteList;
+    private List<Movie> favoriteList = new ArrayList<>();
     private OnMovieClickListener listener;
 
-    // TODO: 3/6/18 Не анйкращий варіант - краще створити адаптер пустим, засетити його, а потім додавати/видаляти з нього.
-    
-    public FavoriteMovieAdapter(List<Movie> list) {
-        favoriteList = list;
+    public FavoriteMovieAdapter() {
+    }
+
+    public void addFavoriteMovieAdapter(List<Movie> list) {
+        int startPos = getItemCount();
+        notifyItemRangeInserted(startPos, list.size());
+        favoriteList.addAll(list);
     }
 
     public void setOnMovieClickListener(OnMovieClickListener listener) {
@@ -39,7 +44,7 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
         favoriteList.remove(position);
     }
 
-    // TODO: 3/6/18 Намагайся такі куск робити nullable, потім студя тобі буде підсвічувати місця, де може буть щось нулабл. 
+    @Nullable
     public Movie getMovie(int position) {
         if (position < 0 || position >= getItemCount()) {
             return null;
@@ -55,8 +60,8 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
 
     @Override
     public void onBindViewHolder(FavoriteMovieViewHolder holder, int position) {
-        // TODO: 3/6/18 Краще юзай holder.getAdapterPosition()
-        Movie movie = favoriteList.get(position);
+
+        Movie movie = favoriteList.get(holder.getAdapterPosition());
 
         if (movie != null) {
             holder.setImage(movie);

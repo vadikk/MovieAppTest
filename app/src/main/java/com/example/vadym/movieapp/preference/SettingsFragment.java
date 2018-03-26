@@ -1,17 +1,14 @@
 package com.example.vadym.movieapp.preference;
 
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.example.vadym.movieapp.R;
-import com.example.vadym.movieapp.constans.Constant;
 
 /**
  * Created by Vadym on 18.02.2018.
@@ -30,7 +27,7 @@ public class SettingsFragment extends PreferenceFragment
         addPreferencesFromResource(R.xml.preference);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        PreferenceManager.setDefaultValues(getActivity(),R.xml.preference,true);
+        PreferenceManager.setDefaultValues(getActivity(), R.xml.preference, true);
     }
 
     @Override
@@ -50,13 +47,11 @@ public class SettingsFragment extends PreferenceFragment
         Preference preference = findPreference(s);
         if (preference instanceof ListPreference) {
             ListPreference listPreference = (ListPreference) findPreference(s);
-            // TODO: 3/6/18 Краще мати якусь дефолтну мову.
-                int index = listPreference.findIndexOfValue(sharedPreferences.getString(s,""));
-                editor = preferences.edit();
-                editor.putInt("language",index).apply();
+            int index = listPreference.findIndexOfValue(sharedPreferences.getString(s, ""));
+            editor = preferences.edit();
+            editor.putInt("language", index).apply();
 
-                String text = String.valueOf(listPreference.getEntries()[index]);
-                Log.d("TAG", "item " + index);
+            String text = String.valueOf(listPreference.getEntries()[index]);
         }
     }
 }

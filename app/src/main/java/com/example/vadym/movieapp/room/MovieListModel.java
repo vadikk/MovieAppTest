@@ -11,6 +11,7 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -31,7 +32,7 @@ public class MovieListModel extends AndroidViewModel {
         return db.movieDao().getAll();
     }
 
-    public Flowable<List<Genres.Genre>> getGenres() {
+    public Single<List<Genres.Genre>> getGenres() {
         return db.movieDao().getAllGenre();
     }
 

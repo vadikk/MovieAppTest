@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vadym.movieapp.R;
+import com.example.vadym.movieapp.activities.OnMovieClickListener;
 import com.example.vadym.movieapp.activities.OnStarClickListener;
 import com.example.vadym.movieapp.model.Movie;
 
@@ -22,16 +23,23 @@ import java.util.Set;
 public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> {
 
     private OnStarClickListener starListener;
+    private OnMovieClickListener movieListener;
     private List<Movie> movieList = new ArrayList<>();
     private Set<String> favoritID = new HashSet<>();
 
-    public MovieRecyclerAdapter(Set<String> strings) {
+    public MovieRecyclerAdapter() {
+    }
 
-        favoritID = strings;
+    public int getSetSize() {
+        return favoritID.size();
     }
 
     public void setOnClickListener(OnStarClickListener listener) {
         this.starListener = listener;
+    }
+
+    public void setOnMovieListener(OnMovieClickListener listener) {
+        this.movieListener = listener;
     }
 
     public void setFavoritID(String favoritID) {
@@ -48,6 +56,11 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
             return true;
 
         return false;
+    }
+
+    public void addMovieWithID(Movie movie) {
+        chechListMovie(movie);
+        notifyDataSetChanged();
     }
 
     public int getSize() {
@@ -97,8 +110,8 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
             holder.setMovie(movie);
 
             holder.star.setOnClickListener((view) -> onStarClick(holder.getAdapterPosition()));
+            holder.itemView.setOnClickListener(view -> onClickMovie(holder.getAdapterPosition()));
         }
-
     }
 
     @Override
@@ -109,6 +122,12 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     private void onStarClick(int position) {
         if (starListener != null) {
             starListener.onClickStar(position);
+        }
+    }
+
+    private void onClickMovie(int position) {
+        if (movieListener != null) {
+            movieListener.onMovieClick(position);
         }
     }
 

@@ -7,6 +7,8 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Single;
+
 /**
  * Created by Vadym on 26.02.2018.
  */

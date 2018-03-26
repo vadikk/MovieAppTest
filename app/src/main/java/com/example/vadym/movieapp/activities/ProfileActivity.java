@@ -1,34 +1,38 @@
 package com.example.vadym.movieapp.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
-import android.view.KeyEvent;
+import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.constans.Constant;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Arrays;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class ProfileActivity extends AppCompatActivity implements View.OnClickListener {
 
-    @BindView(R.id.btnReg)
-    Button btnSubmit;
-    @BindView(R.id.editTextPasswordReg)
-    EditText passwordText;
-    @BindView(R.id.editTextEmailReg)
-    EditText emailText;
-    @BindView(R.id.editTextNameProfile)
-    EditText nameText;
-    @BindView(R.id.registration)
-    CardView registrCardView;
+    private static int RC_SIGN_IN = 123;
+
     @BindView(R.id.profileSignOut)
     CardView profileSignOut;
     @BindView(R.id.btnSignOut)
@@ -38,73 +42,106 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     @BindView(R.id.emailInfo)
     TextView emailInfo;
 
-    private boolean isAutoSignIn = false;
     private SharedPreferences preferences;
-
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        setTitle(getString(R.string.profile));
 
-        // TODO: 3/6/18 А де вхід? чому я не можу зайти в профіль, якщо я вже був зареєстрованим?
-        // TODO: 3/6/18 Рагульний дизайн, поля - не рівні.
-        // TODO: 3/6/18 Не можна повернутися назад в програмі.
-        // TODO: 3/6/18 При поверненні назад - не оновлюж інфу на дровері.
-        
         ButterKnife.bind(this);
-
-        init();
-
-        btnSubmit.setOnClickListener(this);
+        mAuth = FirebaseAuth.getInstance();
+        preferences = getSharedPreferences(Constant.APP_PREFS, Context.MODE_PRIVATE);
         signOut.setOnClickListener(this);
-
-        passwordEditTextListener();
     }
 
-    private void init() {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        preferences = getSharedPreferences(Constant.APP_PREFS, Context.MODE_PRIVATE);
-        isAutoSignIn = preferences.getBoolean(Constant.IS_SIGN_IN, false);
-        if (isAutoSignIn) {
-
-            showProfile();
+        if (currentUser != null) {
+            updateUI(mAuth.getCurrentUser());
+        } else {
+            signIn();
         }
     }
 
-    private void setSettingsSharedPreference() {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        String name = nameText.getText().toString();
-        String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
 
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(Constant.NAME, name);
-        editor.putString(Constant.EMAIL, email);
-        editor.putString(Constant.PASSWORD, password);
-        editor.putBoolean(Constant.IS_SIGN_IN, true);
-        editor.apply();
+            if (resultCode == RESULT_OK) {
+                profileSignOut.setVisibility(View.VISIBLE);
+                FirebaseUser user = mAuth.getCurrentUser();
+                updateUI(user);
+            } else {
+                Toast.makeText(ProfileActivity.this, "Authentication FAILED.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
-    private void passwordEditTextListener() {
-        if (isRegisterOK()) {
-            passwordText.setOnKeyListener(new View.OnKeyListener() {
-                @Override
-                public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                    if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-                        switch (i) {
-                            case KeyEvent.KEYCODE_DPAD_CENTER:
-                            case KeyEvent.KEYCODE_ENTER:
-                                setSettingsSharedPreference();
-                                showProfile();
-                                return true;
-                            default:
-                                return false;
-                        }
+    private void signIn() {
+
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(Arrays.asList(
+                                new AuthUI.IdpConfig.EmailBuilder().build(),
+                                new AuthUI.IdpConfig.GoogleBuilder().build()
+                        )).build(), RC_SIGN_IN);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        AuthUI.getInstance()
+                .signOut(this)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        profileSignOut.setVisibility(View.INVISIBLE);
+
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.clear();
+                        editor.apply();
                     }
-                    return false;
-                }
-            });
+                });
+        signIn();
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+            profileSignOut.setVisibility(View.VISIBLE);
+
+            String name = user.getDisplayName();
+            String email = user.getEmail();
+            Uri image = user.getPhotoUrl();
+            Log.d("TAG", "image " + image);
+
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(Constant.NAME, name);
+            editor.putString(Constant.EMAIL, email);
+            editor.putString(Constant.IMAGE, String.valueOf(image));
+            editor.apply();
+
+            titleText.setText(getResources().getString(R.string.hello, name));
+            emailInfo.setText(getResources().getString(R.string.email_info, email));
         }
     }
 
@@ -114,63 +151,12 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
         int id = view.getId();
 
         switch (id) {
-            case R.id.btnReg:
-                if (isRegisterOK()) {
-                    setSettingsSharedPreference();
-                    showProfile();
-                }
-                break;
             case R.id.btnSignOut:
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.clear();
-                editor.apply();
-                profileSignOut.setVisibility(View.INVISIBLE);
-                registrCardView.setVisibility(View.VISIBLE);
-
+                signOut();
                 break;
             default:
                 break;
         }
 
-
-    }
-
-    private void showProfile() {
-
-        registrCardView.setVisibility(View.INVISIBLE);
-        profileSignOut.setVisibility(View.VISIBLE);
-
-        String title = preferences.getString(Constant.NAME, "");
-        String email = preferences.getString(Constant.EMAIL, "");
-
-        titleText.setText(getResources().getString(R.string.hello, title));
-        emailInfo.setText(getResources().getString(R.string.email_info, email));
-
-    }
-
-    private boolean isRegisterOK() {
-
-        String name = nameText.getText().toString();
-        String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
-
-        if (nameText.getText().length() == 0) {
-            nameText.setError(getString(R.string.name_error));
-            return false;
-        } else if (emailText.getText().length() == 0) {
-            emailText.requestFocus();
-            emailText.setError(getString(R.string.email_error));
-            return false;
-        } else if (passwordText.getText().length() == 0) {
-            passwordText.requestFocus();
-            passwordText.setError(getString(R.string.password_error));
-            return false;
-        }
-
-        if (!name.isEmpty() && !email.isEmpty() && !password.isEmpty()) {
-            return true;
-        }
-
-        return false;
     }
 }

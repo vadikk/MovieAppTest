@@ -1,12 +1,13 @@
 package com.example.vadym.movieapp.util;
 
 import com.example.vadym.movieapp.activities.OnUpdateRecyclerAdapterListener;
+import com.example.vadym.movieapp.data.listMovie.MovieRecyclerAdapter;
+import com.example.vadym.movieapp.model.Movie;
 
 /**
  * Created by Vadym on 15.02.2018.
  */
 
-// TODO: 3/6/18 Така конструкція не дуже правильна. Ти маєш сетити цей  лістенер в якийсь об'єкт і той об'єкт має викликати updateAdapter.
 public class UpdateListener {
 
     private static OnUpdateRecyclerAdapterListener listener;
@@ -15,9 +16,11 @@ public class UpdateListener {
         listener = newListener;
     }
 
-    public static void updateAdapter(String id) {
+    public static void deleteID(Movie id) {
         if (listener != null) {
-            listener.updateRecyclerAdapter(id);
+            listener.deleteIDFromAdapter(id);
         }
+
     }
+
 }

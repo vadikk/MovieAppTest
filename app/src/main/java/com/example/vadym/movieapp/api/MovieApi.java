@@ -6,6 +6,7 @@ import com.example.vadym.movieapp.service.Genres;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -20,10 +21,10 @@ public interface MovieApi {
     Flowable<MovieResponce> getMovie(@Query("query") String name, @Query("page") int number, @Query("language") String language);
 
     @GET("3/movie/{id}?")
-    Observable<MovieDetails> getMovieDetails(@Path("id") String id, @Query("language") String language);
+    Single<MovieDetails> getMovieDetails(@Path("id") String id, @Query("language") String language);
 
     @GET("3/genre/movie/list?")
-    Flowable<Genres> getGenres(@Query("language") String language);
+    Observable<Genres> getGenres(@Query("language") String language);
 
     @GET("3/discover/movie?")
     Flowable<MovieResponce> getDiscoverMovie(@Query("language") String language, @Query("sort_by") String sort, @Query("include_adult") String adult,

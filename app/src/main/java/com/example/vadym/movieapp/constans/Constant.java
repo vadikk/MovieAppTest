@@ -13,7 +13,7 @@ public class Constant {
     public static final String APP_PREFS = "SharedPrefence";
     public static final String NAME = "NameUser";
     public static final String EMAIL = "Email";
-    public static final String PASSWORD = "Password";
+    public static final String IMAGE = "Image";
     public static final String IS_SIGN_IN = "UserLoginIn";
 
 }

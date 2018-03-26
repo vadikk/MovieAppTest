@@ -1,6 +1,7 @@
 package com.example.vadym.movieapp.activities;
 
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -15,41 +16,49 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.vadym.movieapp.R;
+import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.constans.Constant;
 import com.example.vadym.movieapp.data.listMovie.MovieRecyclerAdapter;
 import com.example.vadym.movieapp.model.Movie;
-import com.example.vadym.movieapp.model.MovieResponce;
 import com.example.vadym.movieapp.room.MovieListModel;
 import com.example.vadym.movieapp.service.GenreService;
 import com.example.vadym.movieapp.service.Genres;
 import com.example.vadym.movieapp.util.BottomSheet;
+import com.example.vadym.movieapp.util.ErrorUtil;
 import com.example.vadym.movieapp.util.UpdateListener;
+import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        OnStarClickListener, OnUpdateRecyclerAdapterListener, OnBottomSheetListener {
+        OnStarClickListener, OnUpdateRecyclerAdapterListener, OnBottomSheetListener, OnMovieClickListener {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
@@ -57,16 +66,14 @@ public class MainActivity extends AppCompatActivity
     ProgressBar bar;
     @BindView(R.id.search)
     SearchView searchView;
-    //    @BindView(R.id.toolbar)
-//    Toolbar toolbar;
     @BindView(R.id.cardErrorView)
     CardView cardView;
     @BindView(R.id.errorTitle)
     TextView errorText;
     @BindView(R.id.filterButton)
     ImageButton filterBtn;
-
-
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
     @BindView(R.id.nav_view)
@@ -84,8 +91,6 @@ public class MainActivity extends AppCompatActivity
     private Set<String> dbLoadList = new HashSet<>();
     private SharedPreferences sharedPreferences;
     private CompositeDisposable compositeDisposable;
-    private CompositeDisposable compositeDB;
-    private CompositeDisposable compositeDBGenres;
     private BottomSheet bottomSheet;
 
     @Override
@@ -94,18 +99,12 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
-        // TODO: 3/6/18 При поверненні назад із favourite - не зкидує селект із favourite.
-        // TODO: 3/6/18 При повторному вході - не показує інфу про користувача.
-        // TODO: 3/6/18 Клін на фільм не працює.
-
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
 
         ButterKnife.bind(this);
-//        setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         compositeDisposable = new CompositeDisposable();
-        compositeDB = new CompositeDisposable();
-        compositeDBGenres = new CompositeDisposable();
 
         bottomSheet = new BottomSheet();
         bottomSheet.setBottomListener(this);
@@ -120,13 +119,14 @@ public class MainActivity extends AppCompatActivity
         manager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(manager);
 
-        adapter = new MovieRecyclerAdapter(dbLoadList);
+        adapter = new MovieRecyclerAdapter();
         adapter.setOnClickListener(this);
+        adapter.setOnMovieListener(this);
         recyclerView.setAdapter(adapter);
 
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -180,48 +180,105 @@ public class MainActivity extends AppCompatActivity
             showDetailDialog();
 
         });
+
+        init();
+        navigationView.setCheckedItem(R.id.nav_films);
+    }
+
+    private void init() {
+        View headerView = navigationView.getHeaderView(0);
+        TextView userID = headerView.findViewById(R.id.userID);
+        TextView userEmail = headerView.findViewById(R.id.userEmail);
+        ImageView imageViewUser = headerView.findViewById(R.id.imageViewUser);
+
+        String id = null;
+        String email = null;
+        String image = null;
+
+        SharedPreferences preferences = getSharedPreferences(Constant.APP_PREFS, Context.MODE_PRIVATE);
+        id = preferences.getString(Constant.NAME, null);
+        email = preferences.getString(Constant.EMAIL, null);
+        image = preferences.getString(Constant.IMAGE, null);
+        if (image != null)
+            Picasso.with(this).load(image).into(imageViewUser);
+
+        if (id == null || email == null || image == null) {
+            id = getResources().getString(R.string.android_studio);
+            email = getResources().getString(R.string.android_studio_android_com);
+            imageViewUser.setImageResource(R.mipmap.ic_launcher_round);
+        }
+
+        userID.setText(id);
+        userEmail.setText(email);
     }
 
     private void subscribeUIMovie() {
 
-        Flowable<List<Movie>> flowable = viewModel.getItems()
+        Flowable flowable = viewModel.getItems()
                 .subscribeOn(Schedulers.io())
+                .filter(list -> !list.isEmpty())
+                .flatMap(Flowable::fromIterable)
+                .flatMapCompletable(movie -> setFavoritID(movie)).toFlowable()
                 .observeOn(AndroidSchedulers.mainThread());
 
-        compositeDB.add(flowable.subscribe(movieList -> {
-            if (movieList == null) {
-                return;
+        Disposable disposableMovie = flowable.subscribe();
+        compositeDisposable.add(disposableMovie);
+
+        Disposable disposable = viewModel.getGenres()
+                .subscribeOn(Schedulers.io())
+                .filter(genres -> !genres.isEmpty())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(genres -> {
+                    if (GenreService.loadFromDB) {
+                        GenreService.loadFromDB = false;
+                        for (Genres.Genre genre : genres) {
+                            Log.d("TAG", " ID " + genre.getId() + " name " + genre.getName());
+                        }
+                    }
+                });
+
+        compositeDisposable.add(disposable);
+    }
+
+    private Completable setFavoritID(Movie movie) {
+        return Completable.fromAction(() -> {
+            adapter.setFavoritID(movie.getId());
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Movie movie = null;
+        if (requestCode == 1) {
+            switch (resultCode) {
+                case 1:
+                    movie = (Movie) data.getSerializableExtra(MovieDetailsActivity.MOVIEDETAILS);
+                    boolean isClick = data.getBooleanExtra("Bool", false);
+                    if (isClick) {
+                        adapter.addMovieWithID(movie);
+                    } else {
+                        adapter.deleteFavoritID(movie.getId());
+                    }
+                    break;
+                case 2:
+                    movie = (Movie) data.getSerializableExtra(FavoriteListActivity.FAVORITE_MOVIE);
+                    if (adapter.ifExist(movie.getId())) {
+                        adapter.deleteFavoritID(movie.getId());
+                    }
+                    break;
+
+                default:
+                    break;
             }
-// TODO: 3/6/18 flatMap тобі в допомогу.
-            for (int i = 0; i < movieList.size(); i++) {
-                Movie movie = movieList.get(i);
-                dbLoadList.add(movie.getId());
-//                Log.d("TAG", " Item " + movie.getTitle() + " bool " + movie.isFavorite());
-                Log.d("TAG", " Size " + dbLoadList.size() + " ID " + movie.getId());
-            }
-        }, error -> {
-            Log.d("TAG", "Error");
-        }));
 
-        //Глянь чего более раза выводит это
-        // TODO: 3/6/18 Тому що ти  спочатку вижираєш збережені дані, а потім срвіс базу оновлює і ти другий раз отримуєш дані.
-        compositeDBGenres.add(viewModel.getGenres().observeOn(AndroidSchedulers.mainThread()).subscribe(list -> {
-            if (list == null)
-                return;
-
-            Log.d("TAG", "SIze " + list.size());
-
-            for (Genres.Genre gen : list) {
-                Log.d("TAG", " ID " + gen.getId() + " name " + gen.getName());
-            }
-        }));
-
+        }
     }
 
     private String getLanguage() {
         String language = null;
-        // TODO: 3/6/18 При чому тут 20???
-        int id = sharedPreferences.getInt("language", 20);
+
+        int id = sharedPreferences.getInt("language", 0);
         switch (id) {
             case 0:
                 language = "en";
@@ -232,9 +289,9 @@ public class MainActivity extends AppCompatActivity
             case 2:
                 language = "ru";
                 return language;
-            // TODO: 3/6/18 Встав дефолтну мову.
             default:
-                return null;
+                language = "en";
+                return language;
         }
     }
 
@@ -242,43 +299,54 @@ public class MainActivity extends AppCompatActivity
 
         cardView.setVisibility(View.INVISIBLE);
         bar.setVisibility(View.VISIBLE);
-        Flowable<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getMovie(searchText, page, getLanguage())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
 
-        Disposable disposable = responseCall.subscribe(movieResponce -> {
+        Flowable responseCall = MovieRetrofit.getRetrofit().getMovie(searchText, page, getLanguage())
+                .doOnNext(movieResponce -> total = Integer.parseInt(movieResponce.getTotalResults()))
+                .flatMap(movieResponce -> Flowable.just(movieResponce.getMovieList()))
+                .filter(list -> !list.isEmpty())
+                .delay(1, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
+                .flatMapCompletable(this::addAllItemToAdapter).toFlowable()
+                .onErrorReturn(throwable -> {
+                    showError(throwable);
+                    return true;
+                });
 
-            MovieResponce responce = movieResponce;
-            total = Integer.parseInt(movieResponce.getTotalResults());
-            List<Movie> movies = movieResponce.getMovieList();
 
-            adapter.addAll(movies);
-            isLoading = false;
-            bar.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    bar.setVisibility(View.GONE);
-                }
-            }, 1000);
-        }, error -> {
-//            ApiError errorMessage = ErrorUtil.parseError(error);
-            Log.d("TAG", error.getMessage());
-            showFailView(error.getMessage());
-        });
+        Disposable disposable = responseCall.subscribe();
         compositeDisposable.add(disposable);
+    }
+
+    private void showError(Throwable throwable) {
+        HttpException httpException = (HttpException) throwable;
+        Response response = httpException.response();
+        ApiError errorMessage = ErrorUtil.parseError(response);
+        showFailView(errorMessage.getMessage());
+    }
+
+    private Completable addAllItemToAdapter(List<Movie> list) {
+        return Completable.fromAction(() -> {
+            adapter.addAll(list);
+            isLoading = false;
+            setProgressBarGone();
+        });
+    }
+
+    private void setProgressBarGone() {
+        Completable.timer(1, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
+                .subscribe(() -> bar.setVisibility(View.GONE));
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        navigationView.setCheckedItem(R.id.nav_films);
+        init();
     }
 
     @Override
     protected void onDestroy() {
         if (compositeDisposable != null)
             compositeDisposable.clear();
-
-        if (compositeDB != null)
-            compositeDB.clear();
-
-        if (compositeDBGenres != null)
-            compositeDBGenres.clear();
-
         super.onDestroy();
     }
 
@@ -300,7 +368,8 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_favorite) {
             Intent intent = new Intent(MainActivity.this, FavoriteListActivity.class);
-            startActivity(intent);
+//            startActivity(intent);
+            startActivityForResult(intent, 1);
         } else if (id == R.id.nav_login) {
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
             startActivity(intent);
@@ -330,7 +399,6 @@ public class MainActivity extends AppCompatActivity
         Movie movie = adapter.getMovie(position);
         if (movie != null) {
             movie.setFavorite(!movie.isFavorite());
-            // TODO: 3/6/18 Краще спочатку робити щось в адаптері(видаляти елемент, додавати), а потім вже нотифікувати самого адаптера.
             adapter.notifyItemChanged(position);
 
             if (movie.isFavorite()) {
@@ -354,10 +422,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void updateRecyclerAdapter(String id) {
-        if (adapter.ifExist(id)) {
-            adapter.deleteFavoritID(id);
-        }
+    public void deleteIDFromAdapter(Movie mov) {
+        adapter.deleteFavoritID(mov.getId());
     }
 
 
@@ -374,35 +440,36 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void loadMoreFilterData(int page, String vote, String year, String runTime) {
+
         cardView.setVisibility(View.INVISIBLE);
         bar.setVisibility(View.VISIBLE);
         isLoading = true;
         isfilter = true;
-        Flowable<MovieResponce> responseCall = MovieRetrofit.getRetrofit().getDiscoverMovie(getLanguage(), Constant.SORT,
+
+        Flowable responseCall = MovieRetrofit.getRetrofit().getDiscoverMovie(getLanguage(), Constant.SORT,
                 "false", "false", page, vote, year, runTime)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+                .doOnNext(movieResponce -> total = Integer.parseInt(movieResponce.getTotalResults()))
+                .flatMap(movieResponce -> Flowable.just(movieResponce.getMovieList()))
+                .filter(list -> !list.isEmpty())
+                .delay(1, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
+                .flatMapCompletable(this::addAllItemToAdapter).toFlowable()
+                .onErrorReturn(throwable -> {
+                    showError(throwable);
+                    return true;
+                });
 
-        Disposable disposable = responseCall.subscribe(movieResponce -> {
-
-            MovieResponce responce = movieResponce;
-            total = Integer.parseInt(movieResponce.getTotalResults());
-            Log.d("TAG", "total " + total);
-            List<Movie> movies = movieResponce.getMovieList();
-
-            adapter.addAll(movies);
-            isLoading = false;
-            bar.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    bar.setVisibility(View.GONE);
-                }
-            }, 1000);
-        }, error -> {
-//            ApiError errorMessage = ErrorUtil.parseError(error);
-            Log.d("TAG", error.getMessage());
-            showFailView(error.getMessage());
-        });
+        Disposable disposable = responseCall.subscribe();
         compositeDisposable.add(disposable);
+    }
+
+    @Override
+    public void onMovieClick(int position) {
+        Intent intent = new Intent(MainActivity.this, MovieDetailsActivity.class);
+        Movie movie = adapter.getMovie(position);
+        if (movie == null)
+            return;
+        intent.putExtra(MovieDetailsActivity.MOVIEDETAILS, movie);
+//        startActivity(intent);
+        startActivityForResult(intent, 1);
     }
 }

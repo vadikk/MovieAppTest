@@ -3,7 +3,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context="com.example.vadym.movieapp.activities.MovieDetailsActivity">
 
     <ScrollView
@@ -54,85 +54,92 @@
                 android:visibility="invisible">
 
                 <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:padding="10dp">
 
                     <FrameLayout
                         android:id="@+id/frameLayout"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_toLeftOf="@id/movieInfo"
+                        android:layout_toStartOf="@id/movieInfo">
 
                         <ImageView
                             android:id="@+id/movieImageDetail"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/ic_launcher_background" />
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitXY" />
 
                         <ImageButton
                             android:id="@+id/imageButtonDetail"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
-                            android:layout_gravity="top|right"
+                            android:layout_gravity="end|top"
                             android:background="@drawable/ic_launcher_white" />
 
                     </FrameLayout>
 
-
-                    <TextView
-                        android:id="@+id/movieTitleDetail"
-                        android:layout_width="wrap_content"
+                    <RelativeLayout
+                        android:id="@+id/movieInfo"
+                        android:layout_width="150dp"
                         android:layout_height="wrap_content"
-                        android:layout_toRightOf="@id/frameLayout"
-                        android:paddingLeft="5dp"
-                        android:text="@string/movie_name"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true">
 
-                    <TextView
-                        android:id="@+id/movieGenreDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/movieTitleDetail"
-                        android:layout_toRightOf="@id/frameLayout"
-                        android:paddingLeft="5dp"
-                        android:text="@string/genre" />
+                        <TextView
+                            android:id="@+id/movieTitleDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="5dp"
+                            android:text="@string/movie_name"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/movieReleaseDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/movieGenreDetail"
-                        android:layout_toRightOf="@id/frameLayout"
-                        android:paddingLeft="5dp"
-                        android:text="@string/release_date" />
+                        <TextView
+                            android:id="@+id/movieGenreDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/movieTitleDetail"
+                            android:paddingLeft="5dp"
+                            android:text="@string/genre" />
 
-                    <TextView
-                        android:id="@+id/movieBudgetDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/movieReleaseDetail"
-                        android:layout_toRightOf="@id/frameLayout"
-                        android:paddingLeft="5dp"
-                        android:text="@string/budget" />
+                        <TextView
+                            android:id="@+id/movieReleaseDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/movieGenreDetail"
+                            android:paddingLeft="5dp"
+                            android:text="@string/release_date" />
 
-                    <TextView
-                        android:id="@+id/movieRuntimeDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/movieBudgetDetail"
-                        android:layout_toRightOf="@id/frameLayout"
-                        android:paddingLeft="5dp"
-                        android:text="@string/runtime" />
+                        <TextView
+                            android:id="@+id/movieBudgetDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/movieReleaseDetail"
+                            android:paddingLeft="5dp"
+                            android:text="@string/budget" />
 
-                    <TextView
-                        android:id="@+id/movieStatusDetail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/movieRuntimeDetail"
-                        android:layout_toRightOf="@id/frameLayout"
-                        android:paddingLeft="5dp"
-                        android:text="@string/status" />
+                        <TextView
+                            android:id="@+id/movieRuntimeDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/movieBudgetDetail"
+                            android:paddingLeft="5dp"
+                            android:text="@string/runtime" />
+
+                        <TextView
+                            android:id="@+id/movieStatusDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/movieRuntimeDetail"
+                            android:paddingLeft="5dp"
+                            android:text="@string/status" />
+
+                    </RelativeLayout>
 
                 </RelativeLayout>
             </android.support.v7.widget.CardView>

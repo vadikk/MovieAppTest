@@ -12,6 +12,7 @@ import com.example.vadym.movieapp.service.Genres;
 import java.util.List;
 
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 
 import static android.arch.persistence.room.OnConflictStrategy.REPLACE;
 
@@ -46,9 +47,8 @@ public interface MovieDao {
     @Insert(onConflict = REPLACE)
     void insertGenres(Genres.Genre genre);
 
-    // TODO: 3/6/18 Тут краще заюзати Single чи Maybe. Глянь на ці типи.
     @Query("SELECT * FROM genre")
-    Flowable<List<Genres.Genre>> getAllGenre();
+    Single<List<Genres.Genre>> getAllGenre();
 
 
 }
