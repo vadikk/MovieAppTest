@@ -5,13 +5,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.room.MovieDB;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 
 import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -62,7 +66,7 @@ public class GenreService extends Service {
     private String getLanguage() {
         String language = null;
 
-        int id = sharedPreferences.getInt("language", 20);
+        int id = sharedPreferences.getInt("language", 0);
         switch (id) {
             case 0:
                 language = "en";
@@ -73,37 +77,44 @@ public class GenreService extends Service {
             case 2:
                 language = "ru";
                 return language;
-            // TODO: 3/6/18 Краще тут взяти англ по-дефолту, щоб на всякий випадок поверталося англійською. Або, якщо на сервері дефолтно англійською, можна лишити нул.
             default:
-                return null;
+                language = "en";
+                return language;
         }
     }
 
     private void getAllGenres() {
+        Disposable disposable =  MovieRetrofit.getRetrofit().getGenres(getLanguage()).toObservable()
+                .subscribeOn(Schedulers.newThread())
+                .flatMap(genres -> io.reactivex.Observable.just(genres.getGenres()))
+                .filter(genres -> !genres.isEmpty())
+                .flatMap(io.reactivex.Observable::fromIterable)
+                .flatMapCompletable(genre -> insertGenre(genre))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+        //нам не нужно выкидывать его в мейн поток, хай достает его паралелльно, это при сабскрайбе, то там мона заюзать мейн
 
-        Flowable<Genres> genresFlowable = MovieRetrofit.getRetrofit().getGenres(getLanguage())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+        // TODO: 3/6/18 Тут такий прикол - в тебе додавання в базу відбувається асинхронно і може виконуватися довше і то не гарантує, що закінчиться все до твого виклику stopSelf.
+        // TODO: Краще зробити це в одному комплексі. Наприклад, отримати жанри, кожного із жанрів додати в базу. а при сабскрайбі - зупинити сервіс.
+        //TODO: глянь таку штуку як flatMap.
+        //todo Не впевенний, що так гарно зроблено, бо трба переглянути мені по другому реактиву апі. Юл я вже трохи призабув, бо на проектах перший переважно(
 
-        Disposable disposable = genresFlowable.subscribe(response -> {
-            Genres genres = response;
-            List<Genres.Genre> genreList = genres.getGenres();
-            for (Genres.Genre gen : genreList) {
-                insertGenre(gen);
-            }
-            // TODO: 3/6/18 Тут такий прикол - в тебе додавання в базу відбувається асинхронно і може виконуватися довше і то не гарантує, що закінчиться все до твого виклику stopSelf.
-            // TODO: Краще зробити це в одному комплексі. Наприклад, отримати жанри, кожного із жанрів додати в базу. а при сабскрайбі - зупинити сервіс.
-            //TODO: глянь таку штуку як flatMap.
-            stopSelf();
-        });
+
+//        map(genres -> {
+//            List<Genres.Genre> genreList = genres.getGenres();
+//            insertGenre(genreList.get(0));
+//            Log.d("TAG"," value " + genreList.get(0));
+//            return genres;
+//        })
+
         compositeDisposable.add(disposable);
 
     }
 
-    public void insertGenre(Genres.Genre genre) {
-        Completable.fromAction(() -> {
+    public Completable insertGenre(Genres.Genre genre) {
+        return Completable.fromAction(() -> {
+            Log.i("insertGenre", genre.getName());
             db.movieDao().insertGenres(genre);
-        }).subscribeOn(Schedulers.io()).subscribe();
+        }).subscribeOn(Schedulers.io()) .observeOn(Schedulers.io());
     }
-
 }

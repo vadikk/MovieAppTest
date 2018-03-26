@@ -28,7 +28,6 @@ public class MovieListModel extends AndroidViewModel {
     }
 
     public Flowable<List<Movie>> getItems() {
-
         return db.movieDao().getAll();
     }
 
