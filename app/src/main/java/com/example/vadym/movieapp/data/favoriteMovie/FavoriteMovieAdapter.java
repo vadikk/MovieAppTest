@@ -36,6 +36,16 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
         this.listener = listener;
     }
 
+    public void updateFavoriteList(Movie movie) {
+        for (int i = 0; i < getItemCount(); i++) {
+            Movie movieFav = favoriteList.get(i);
+            if (movie.getId().equals(movieFav.getId())) {
+                favoriteList.remove(movieFav);
+                notifyDataSetChanged();
+            }
+        }
+    }
+
     public void deleteFromList(int position) {
         if (position < 0 || position >= getItemCount()) {
             return;

@@ -5,10 +5,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -17,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
@@ -26,13 +29,26 @@ import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieDetails;
 import com.example.vadym.movieapp.room.MovieListModel;
 import com.example.vadym.movieapp.util.ErrorUtil;
-import com.example.vadym.movieapp.util.UpdateListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -51,7 +67,7 @@ public class MovieDetailsActivity extends AppCompatActivity
         implements View.OnClickListener {
 
     public static final String MOVIEDETAILS = "detail";
-    public static final String MOVIE_ID = "movieID";
+
     @BindView(R.id.movieImageDetail)
     ImageView imageView;
     @BindView(R.id.movieTitleDetail)
@@ -93,6 +109,8 @@ public class MovieDetailsActivity extends AppCompatActivity
     private CompositeDisposable compositeDisposable;
     private Movie movie = null;
     private List<String> names = new ArrayList<>();
+    private DocumentReference firestoreDB = FirebaseFirestore.getInstance().collection("movie").document("movieData");
+    private Map<String, Movie> movieMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +133,6 @@ public class MovieDetailsActivity extends AppCompatActivity
 
         }
 
-
         subcribeOnUI();
         shoProgressBar();
         if (movieId != null) {
@@ -133,32 +150,78 @@ public class MovieDetailsActivity extends AppCompatActivity
 
         if (isClick) {
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher));
+            movie.setFavorite(true);
             interactionWithAdapter(movie);
-            viewModel.insertItem(movie);
+            if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                addToFirebase(movie.getId(), movie);
+            else
+                viewModel.insertItem(movie);
 
         }
         if (!isClick) {
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
             interactionWithAdapter(movie);
-            viewModel.deleteByID(movieId);
+            movie.setFavorite(false);
+            if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                deleteFromFirebase(movie.getId());
+            else
+                viewModel.deleteByID(movieId);
         }
-        UpdateListener.deleteID(movie);
     }
 
     private void subcribeOnUI() {
 
-        compositeDisposable.add(viewModel.getItems()
-                .subscribeOn(Schedulers.io())
-                .flatMap(Flowable::fromIterable)
-                .flatMapCompletable(this::addMovieIDToSet)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe());
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            readFromFirebase();
+        } else {
+            compositeDisposable.add(viewModel.getItems()
+                    .subscribeOn(Schedulers.io())
+                    .flatMap(Flowable::fromIterable)
+                    .flatMapCompletable(this::addMovieIDToSet)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe());
+        }
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        init();
+    }
 
+    private void deleteFromFirebase(String id) {
+
+        Map<String, Object> deleteMap = new HashMap<>();
+        deleteMap.put(id, FieldValue.delete());
+
+        firestoreDB.update(deleteMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(MovieDetailsActivity.this, "Successfully deleted!",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void addToFirebase(String id, Movie movie) {
+
+        movieMap.put(id, movie);
+
+        firestoreDB.set(movieMap, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d("TAG", "DocumentSnapshot added with ID: ");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w("TAG", "Error adding document", e);
+            }
+        });
+    }
+
+    private void init() {
         if (setID.contains(movieId)) {
             isClick = true;
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher));
@@ -204,6 +267,30 @@ public class MovieDetailsActivity extends AppCompatActivity
         intent.putExtra(MOVIEDETAILS, movie1);
         intent.putExtra("Bool", isClick);
         setResult(1, intent);
+    }
+
+    private void readFromFirebase() {
+        firestoreDB.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot snapshot = task.getResult();
+                    if (snapshot.exists()) {
+                        Map<Object, Object> map = new HashMap<>();
+                        map.putAll(snapshot.getData());
+
+                        for (Object obj : map.values()) {
+                            Gson gson = new Gson();
+                            JsonElement jsonElement = gson.toJsonTree(obj);
+                            Movie movieGson = gson.fromJson(jsonElement, Movie.class);
+                            setID.add(movieGson.getId());
+                        }
+                        init();
+                    }
+                }
+            }
+        });
+
     }
 
     private void shoProgressBar() {

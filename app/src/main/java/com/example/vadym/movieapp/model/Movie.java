@@ -20,7 +20,7 @@ public class Movie implements Serializable {
     @NonNull
     private String id;
     private String title;
-    @SerializedName("poster_path")
+    @SerializedName(value = "poster_path",alternate = "image")
     private String image;
     private String overview;
 

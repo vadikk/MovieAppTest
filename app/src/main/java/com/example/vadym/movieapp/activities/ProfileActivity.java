@@ -31,8 +31,9 @@ import butterknife.ButterKnife;
 
 public class ProfileActivity extends AppCompatActivity implements View.OnClickListener {
 
+    public static String CHANGE_BD = "bd";
+    public static boolean changeBD = false;
     private static int RC_SIGN_IN = 123;
-
     @BindView(R.id.profileSignOut)
     CardView profileSignOut;
     @BindView(R.id.btnSignOut)
@@ -41,7 +42,8 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     TextView titleText;
     @BindView(R.id.emailInfo)
     TextView emailInfo;
-
+    @BindView(R.id.signInBtn)
+    Button signIn;
     private SharedPreferences preferences;
     private FirebaseAuth mAuth;
 
@@ -55,6 +57,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
         mAuth = FirebaseAuth.getInstance();
         preferences = getSharedPreferences(Constant.APP_PREFS, Context.MODE_PRIVATE);
         signOut.setOnClickListener(this);
+        signIn.setOnClickListener(this);
     }
 
     @Override
@@ -64,8 +67,6 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
 
         if (currentUser != null) {
             updateUI(mAuth.getCurrentUser());
-        } else {
-            signIn();
         }
     }
 
@@ -79,6 +80,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
             if (resultCode == RESULT_OK) {
                 profileSignOut.setVisibility(View.VISIBLE);
                 FirebaseUser user = mAuth.getCurrentUser();
+                changeBD = true;
                 updateUI(user);
             } else {
                 Toast.makeText(ProfileActivity.this, "Authentication FAILED.",
@@ -116,17 +118,19 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         profileSignOut.setVisibility(View.INVISIBLE);
+                        signIn.setVisibility(View.VISIBLE);
+                        changeBD = true;
 
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.clear();
                         editor.apply();
                     }
                 });
-        signIn();
     }
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
+            signIn.setVisibility(View.INVISIBLE);
             profileSignOut.setVisibility(View.VISIBLE);
 
             String name = user.getDisplayName();
@@ -153,6 +157,9 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
         switch (id) {
             case R.id.btnSignOut:
                 signOut();
+                break;
+            case R.id.signInBtn:
+                signIn();
                 break;
             default:
                 break;

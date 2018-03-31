@@ -51,6 +51,10 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
         notifyDataSetChanged();
     }
 
+    public void deleteAllFavoritID() {
+        favoritID.clear();
+    }
+
     public boolean ifExist(String id) {
         if (favoritID.contains(id))
             return true;

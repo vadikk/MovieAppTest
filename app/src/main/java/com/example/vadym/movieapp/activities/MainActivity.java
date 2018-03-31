@@ -24,6 +24,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
@@ -36,13 +37,24 @@ import com.example.vadym.movieapp.service.GenreService;
 import com.example.vadym.movieapp.service.Genres;
 import com.example.vadym.movieapp.util.BottomSheet;
 import com.example.vadym.movieapp.util.ErrorUtil;
-import com.example.vadym.movieapp.util.UpdateListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 import com.squareup.picasso.Picasso;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -58,7 +70,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        OnStarClickListener, OnUpdateRecyclerAdapterListener, OnBottomSheetListener, OnMovieClickListener {
+        OnStarClickListener, OnBottomSheetListener, OnMovieClickListener {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
@@ -88,10 +100,13 @@ public class MainActivity extends AppCompatActivity
     private int page = 1;
 
     private MovieListModel viewModel;
-    private Set<String> dbLoadList = new HashSet<>();
     private SharedPreferences sharedPreferences;
     private CompositeDisposable compositeDisposable;
     private BottomSheet bottomSheet;
+
+    private DocumentReference firestoreDB = FirebaseFirestore.getInstance().collection("movie").document("movieData");
+    private Map<String, Movie> movieMap = new HashMap<>();
+    private String movieID = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +124,6 @@ public class MainActivity extends AppCompatActivity
         bottomSheet = new BottomSheet();
         bottomSheet.setBottomListener(this);
 
-        UpdateListener.setOnUpdateRecyclerListener(this);
         //viewModel.deleteAll();
 
         startService(new Intent(this, GenreService.class));
@@ -214,15 +228,22 @@ public class MainActivity extends AppCompatActivity
 
     private void subscribeUIMovie() {
 
-        Flowable flowable = viewModel.getItems()
-                .subscribeOn(Schedulers.io())
-                .filter(list -> !list.isEmpty())
-                .flatMap(Flowable::fromIterable)
-                .flatMapCompletable(movie -> setFavoritID(movie)).toFlowable()
-                .observeOn(AndroidSchedulers.mainThread());
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            Log.d("TAG", "isAuth " + "OKK");
+            readFromFirebase();
+        } else {
+            Log.d("TAG", "isAuth " + "OK2");
+            Flowable flowable = viewModel.getItems()
+                    .subscribeOn(Schedulers.io())
+                    .filter(list -> !list.isEmpty())
+                    .flatMap(Flowable::fromIterable)
+                    .flatMapCompletable(movie -> setFavoritID(movie)).toFlowable()
+                    .observeOn(AndroidSchedulers.mainThread());
 
-        Disposable disposableMovie = flowable.subscribe();
-        compositeDisposable.add(disposableMovie);
+            Disposable disposableMovie = flowable.subscribe();
+            compositeDisposable.add(disposableMovie);
+        }
+
 
         Disposable disposable = viewModel.getGenres()
                 .subscribeOn(Schedulers.io())
@@ -256,18 +277,23 @@ public class MainActivity extends AppCompatActivity
                     movie = (Movie) data.getSerializableExtra(MovieDetailsActivity.MOVIEDETAILS);
                     boolean isClick = data.getBooleanExtra("Bool", false);
                     if (isClick) {
+                        adapter.setFavoritID(movie.getId());
                         adapter.addMovieWithID(movie);
+
                     } else {
                         adapter.deleteFavoritID(movie.getId());
                     }
                     break;
                 case 2:
-                    movie = (Movie) data.getSerializableExtra(FavoriteListActivity.FAVORITE_MOVIE);
-                    if (adapter.ifExist(movie.getId())) {
-                        adapter.deleteFavoritID(movie.getId());
+                    List<Movie> deleteList = (List<Movie>) data.getSerializableExtra(FavoriteListActivity.FAVORITE_MOVIE);
+                    if(deleteList!=null) {
+                        for (Movie deleteMovie : deleteList) {
+                            if (adapter.ifExist(deleteMovie.getId())) {
+                                adapter.deleteFavoritID(deleteMovie.getId());
+                            }
+                        }
                     }
                     break;
-
                 default:
                     break;
             }
@@ -339,6 +365,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onRestart() {
         super.onRestart();
+
+        if(ProfileActivity.changeBD){
+            bar.setVisibility(View.VISIBLE);
+            ProfileActivity.changeBD = false;
+            adapter.clear();
+            adapter.deleteAllFavoritID();
+            setProgressBarGone();
+            subscribeUIMovie();
+
+        }
+
         navigationView.setCheckedItem(R.id.nav_films);
         init();
     }
@@ -402,12 +439,22 @@ public class MainActivity extends AppCompatActivity
             adapter.notifyItemChanged(position);
 
             if (movie.isFavorite()) {
-                addToBD(movie);
-                adapter.setFavoritID(movie.getId());
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    adapter.setFavoritID(movie.getId());
+                    addToFirebase(movie.getId(), movie);
+                } else {
+                    addToBD(movie);
+                    adapter.setFavoritID(movie.getId());
+                }
 
             } else {
-                deleteFromBD(movie);
-                adapter.deleteFavoritID(movie.getId());
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    adapter.deleteFavoritID(movie.getId());
+                    deleteFromFirebase(movie.getId());
+                } else {
+                    deleteFromBD(movie);
+                    adapter.deleteFavoritID(movie.getId());
+                }
             }
         }
 
@@ -420,12 +467,6 @@ public class MainActivity extends AppCompatActivity
     private void deleteFromBD(Movie movie) {
         viewModel.deleteItem(movie);
     }
-
-    @Override
-    public void deleteIDFromAdapter(Movie mov) {
-        adapter.deleteFavoritID(mov.getId());
-    }
-
 
     private void showDetailDialog() {
 
@@ -471,5 +512,68 @@ public class MainActivity extends AppCompatActivity
         intent.putExtra(MovieDetailsActivity.MOVIEDETAILS, movie);
 //        startActivity(intent);
         startActivityForResult(intent, 1);
+    }
+
+    private void addToFirebase(String position, Movie movie) {
+
+        movieID = movie.getId();
+        movieMap.put(movieID, movie);
+
+        firestoreDB.set(movieMap, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d("TAG", "DocumentSnapshot added with ID: ");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w("TAG", "Error adding document", e);
+            }
+        });
+    }
+
+    private void deleteFromFirebase(String position) {
+
+        Map<String, Object> deleteMap = new HashMap<>();
+        deleteMap.put(position, FieldValue.delete());
+
+        firestoreDB.update(deleteMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(MainActivity.this, "DocumentSnapshot successfully deleted!",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void readFromFirebase() {
+        firestoreDB.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()){
+                    DocumentSnapshot snapshot = task.getResult();
+                    if (snapshot.exists()) {
+                        Log.d("TAG", "DocumentSnapshot data: " + snapshot.getData());
+                        Map<Object, Object> map = new HashMap<>();
+                        map.putAll(snapshot.getData());
+                        getMovieFromMap(map);
+
+                    }
+                }
+            }
+        });
+
+    }
+
+    private void getMovieFromMap(Map<Object, Object> map) {
+        Completable.fromAction(() -> {
+            for (Object obj : map.values()) {
+                Gson gson = new Gson();
+                JsonElement jsonElement = gson.toJsonTree(obj);
+                Movie movie = gson.fromJson(jsonElement, Movie.class);
+                Log.d("TAG", "ID " + movie.getId());
+                adapter.setFavoritID(movie.getId());
+            }
+        }).subscribeOn(Schedulers.io()).subscribe();
     }
 }

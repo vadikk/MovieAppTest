@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     tools:context="com.example.vadym.movieapp.activities.ProfileActivity">
 
+    <Button
+        android:id="@+id/signInBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="@string/fui_sign_in_default"/>
+
     <android.support.v7.widget.CardView
         android:id="@+id/profileSignOut"
         android:layout_width="match_parent"
