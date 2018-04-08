@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.example.vadym.movieapp.R;
+import com.example.vadym.movieapp.dagger.MovieAppAplication;
 import com.example.vadym.movieapp.data.favoriteMovie.FavoriteMovieAdapter;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.room.MovieListModel;
@@ -32,6 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -46,13 +50,20 @@ public class FavoriteListActivity extends AppCompatActivity
     @BindView(R.id.recyclerViewFavorite)
     RecyclerView recyclerView;
 
+    @Inject
+    FavoriteMovieAdapter adapter;
+    @Inject
+    @Named("favorite")
+    LinearLayoutManager manager;
+
     private DocumentReference firestoreDB = FirebaseFirestore.getInstance().collection("movie").document("movieData");
-    private FavoriteMovieAdapter adapter;
+
     private List<Movie> favoriteMovieList = new ArrayList<>();
     private MovieListModel viewModel;
     private CompositeDisposable compositeDB;
     private List<Movie> deleteListMovie = new ArrayList<>();
     private Movie deletedMovie;
+    private boolean isFirstLoad = false;
 
 
     @Override
@@ -63,12 +74,13 @@ public class FavoriteListActivity extends AppCompatActivity
         setTitle(getString(R.string.favorite_list));
 
         ButterKnife.bind(this);
+        ((MovieAppAplication) getApplication()).getFavoriteActivityComponent().inject(this);
 
         compositeDB = new CompositeDisposable();
 
-        LinearLayoutManager manager = new LinearLayoutManager(this);
-        manager.setOrientation(LinearLayoutManager.VERTICAL);
+        adapter.setOnMovieClickListener(FavoriteListActivity.this);
         recyclerView.setLayoutManager(manager);
+        recyclerView.setAdapter(adapter);
 
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
 
@@ -101,15 +113,14 @@ public class FavoriteListActivity extends AppCompatActivity
         setResult(2, intent);
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if (resultCode == 1) {
                 deletedMovie = (Movie) data.getSerializableExtra(MovieDetailsActivity.MOVIEDETAILS);
-                if (deletedMovie.isFavorite()) {
-                    adapter.notifyDataSetChanged();
-                } else {
+                if (!deletedMovie.isFavorite()) {
                     adapter.updateFavoriteList(deletedMovie);
                     deleteListMovie.add(deletedMovie);
                 }
@@ -159,14 +170,13 @@ public class FavoriteListActivity extends AppCompatActivity
             compositeDB.add(viewModel.getItems().subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(list -> {
+                        if (!isFirstLoad) {
+                            isFirstLoad = true;
+                            if (viewModel != null)
+                                favoriteMovieList = list;
 
-                        if (viewModel != null)
-                            favoriteMovieList = list;
-
-                        adapter = new FavoriteMovieAdapter();
-                        adapter.addFavoriteMovieAdapter(favoriteMovieList);
-                        adapter.setOnMovieClickListener(FavoriteListActivity.this);
-                        recyclerView.setAdapter(adapter);
+                            adapter.addFavoriteMovieAdapter(favoriteMovieList);
+                        }
                     }));
         }
 

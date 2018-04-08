@@ -30,6 +30,7 @@ import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
 import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.constans.Constant;
+import com.example.vadym.movieapp.dagger.MovieAppAplication;
 import com.example.vadym.movieapp.data.listMovie.MovieRecyclerAdapter;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.room.MovieListModel;
@@ -56,6 +57,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -91,7 +95,12 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.nav_view)
     NavigationView navigationView;
 
-    private MovieRecyclerAdapter adapter;
+    @Inject
+    MovieRecyclerAdapter adapter;
+    @Inject
+    @Named("movie")
+    LinearLayoutManager manager;
+
     private String searchText;
     private int total = 0;
     private boolean isLoading = false;
@@ -117,6 +126,10 @@ public class MainActivity extends AppCompatActivity
         viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
 
         ButterKnife.bind(this);
+
+        ((MovieAppAplication) getApplication()).getMovieComponent()
+                .inject(this);
+
         setSupportActionBar(toolbar);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         compositeDisposable = new CompositeDisposable();
@@ -128,14 +141,10 @@ public class MainActivity extends AppCompatActivity
 
         startService(new Intent(this, GenreService.class));
 
-
-        LinearLayoutManager manager = new LinearLayoutManager(this);
-        manager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(manager);
-
-        adapter = new MovieRecyclerAdapter();
         adapter.setOnClickListener(this);
         adapter.setOnMovieListener(this);
+
+        recyclerView.setLayoutManager(manager);
         recyclerView.setAdapter(adapter);
 
 
@@ -286,7 +295,7 @@ public class MainActivity extends AppCompatActivity
                     break;
                 case 2:
                     List<Movie> deleteList = (List<Movie>) data.getSerializableExtra(FavoriteListActivity.FAVORITE_MOVIE);
-                    if(deleteList!=null) {
+                    if (deleteList != null) {
                         for (Movie deleteMovie : deleteList) {
                             if (adapter.ifExist(deleteMovie.getId())) {
                                 adapter.deleteFavoritID(deleteMovie.getId());
@@ -366,7 +375,7 @@ public class MainActivity extends AppCompatActivity
     protected void onRestart() {
         super.onRestart();
 
-        if(ProfileActivity.changeBD){
+        if (ProfileActivity.changeBD) {
             bar.setVisibility(View.VISIBLE);
             ProfileActivity.changeBD = false;
             adapter.clear();
@@ -550,7 +559,7 @@ public class MainActivity extends AppCompatActivity
         firestoreDB.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     DocumentSnapshot snapshot = task.getResult();
                     if (snapshot.exists()) {
                         Log.d("TAG", "DocumentSnapshot data: " + snapshot.getData());

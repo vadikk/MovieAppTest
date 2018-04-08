@@ -62,5 +62,8 @@ dependencies {
     implementation 'android.arch.persistence.room:rxjava2:1.0.0'
     implementation 'android.arch.lifecycle:reactivestreams:1.1.0'
 
+    compile  'com.google.dagger:dagger:2.13'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.13'
+
 }
 apply plugin: 'com.google.gms.google-services'

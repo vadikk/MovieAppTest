@@ -13,6 +13,8 @@ import com.example.vadym.movieapp.model.Movie;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 
 /**
  * Created by Vadym on 06.02.2018.
@@ -23,6 +25,7 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
     private List<Movie> favoriteList = new ArrayList<>();
     private OnMovieClickListener listener;
 
+    @Inject
     public FavoriteMovieAdapter() {
     }
 
@@ -41,7 +44,8 @@ public class FavoriteMovieAdapter extends RecyclerView.Adapter<FavoriteMovieView
             Movie movieFav = favoriteList.get(i);
             if (movie.getId().equals(movieFav.getId())) {
                 favoriteList.remove(movieFav);
-                notifyDataSetChanged();
+                notifyItemRemoved(i);
+                return;
             }
         }
     }

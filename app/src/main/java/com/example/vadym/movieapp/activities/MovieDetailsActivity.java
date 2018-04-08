@@ -96,6 +96,7 @@ public class MovieDetailsActivity extends AppCompatActivity
     ProgressBar detailBar;
     @BindView(R.id.imageButtonDetail)
     ImageButton imageButton;
+
     @Nullable
     private String movieId = null;
     private MovieListModel viewModel;
@@ -157,11 +158,10 @@ public class MovieDetailsActivity extends AppCompatActivity
             else
                 viewModel.insertItem(movie);
 
-        }
-        if (!isClick) {
+        } else {
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
-            interactionWithAdapter(movie);
             movie.setFavorite(false);
+            interactionWithAdapter(movie);
             if (FirebaseAuth.getInstance().getCurrentUser() != null)
                 deleteFromFirebase(movie.getId());
             else
@@ -181,7 +181,6 @@ public class MovieDetailsActivity extends AppCompatActivity
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe());
         }
-
     }
 
     @Override

@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 /**
  * Created by Vadym on 29.01.2018.
  */
@@ -27,6 +29,7 @@ public class MovieRecyclerAdapter extends RecyclerView.Adapter<MovieViewHolder> 
     private List<Movie> movieList = new ArrayList<>();
     private Set<String> favoritID = new HashSet<>();
 
+    @Inject
     public MovieRecyclerAdapter() {
     }
 

@@ -34,6 +34,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     public static String CHANGE_BD = "bd";
     public static boolean changeBD = false;
     private static int RC_SIGN_IN = 123;
+
     @BindView(R.id.profileSignOut)
     CardView profileSignOut;
     @BindView(R.id.btnSignOut)
@@ -44,6 +45,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     TextView emailInfo;
     @BindView(R.id.signInBtn)
     Button signIn;
+
     private SharedPreferences preferences;
     private FirebaseAuth mAuth;
 
