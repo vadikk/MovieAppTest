@@ -1,6 +1,7 @@
 package com.example.vadym.movieapp.dagger;
 
-import com.example.vadym.movieapp.activities.MainActivity;
+import android.app.Application;
+import android.content.Context;
 
 import javax.inject.Singleton;
 
@@ -10,8 +11,11 @@ import dagger.Component;
  * Created by Vadym on 04.04.2018.
  */
 @Singleton
-@Component(modules = {AppModule.class, RecyclerModule.class})
+@Component(modules = {AppModule.class, ContextModule.class})
 public interface MovieComponent {
-    void inject(MainActivity activity);
+    void inject(MovieAppAplication appAplication);
 
+    Context getContext();
+
+    Application getApplication();
 }

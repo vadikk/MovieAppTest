@@ -9,6 +9,8 @@ import com.example.vadym.movieapp.service.Genres;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;

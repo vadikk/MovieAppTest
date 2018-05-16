@@ -1,6 +1,8 @@
 package com.example.vadym.movieapp.dagger;
 
 import android.app.Application;
+import android.content.Context;
+
 
 /**
  * Created by Vadym on 04.04.2018.
@@ -9,7 +11,10 @@ import android.app.Application;
 public class MovieAppAplication extends Application {
 
     private MovieComponent movieComponent;
-    private FavoriteActivityComponent favoriteActivityComponent;
+
+    public static MovieAppAplication get(Context context) {
+        return (MovieAppAplication) context.getApplicationContext();
+    }
 
     @Override
     public void onCreate() {
@@ -17,12 +22,7 @@ public class MovieAppAplication extends Application {
 
         movieComponent = DaggerMovieComponent.builder()
                 .appModule(new AppModule(this))
-                .recyclerModule(new RecyclerModule())
-                .build();
-
-        favoriteActivityComponent = DaggerFavoriteActivityComponent.builder()
-                .appModule(new AppModule(this))
-                .favoriteModule(new FavoriteModule())
+                .contextModule(new ContextModule(this))
                 .build();
     }
 
@@ -30,7 +30,4 @@ public class MovieAppAplication extends Application {
         return movieComponent;
     }
 
-    public FavoriteActivityComponent getFavoriteActivityComponent() {
-        return favoriteActivityComponent;
-    }
 }

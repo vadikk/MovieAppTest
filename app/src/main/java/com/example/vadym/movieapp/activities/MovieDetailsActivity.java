@@ -1,16 +1,11 @@
 package com.example.vadym.movieapp.activities;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,52 +14,35 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.vadym.movieapp.R;
 import com.example.vadym.movieapp.api.ApiError;
-import com.example.vadym.movieapp.api.MovieRetrofit;
 import com.example.vadym.movieapp.constans.Constant;
+import com.example.vadym.movieapp.dagger.MovieAppAplication;
+import com.example.vadym.movieapp.dagger.detail.DaggerDetailActivityComponent;
+import com.example.vadym.movieapp.dagger.detail.MvpDetailModule;
+import com.example.vadym.movieapp.dagger.ActivityMovieModule;
 import com.example.vadym.movieapp.model.Movie;
 import com.example.vadym.movieapp.model.MovieDetails;
-import com.example.vadym.movieapp.room.MovieListModel;
+import com.example.vadym.movieapp.mvp.detail.DetailContract;
 import com.example.vadym.movieapp.util.ErrorUtil;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import retrofit2.Response;
 
 public class MovieDetailsActivity extends AppCompatActivity
-        implements View.OnClickListener {
+        implements View.OnClickListener, DetailContract.DetailView {
 
     public static final String MOVIEDETAILS = "detail";
 
@@ -97,21 +75,14 @@ public class MovieDetailsActivity extends AppCompatActivity
     @BindView(R.id.imageButtonDetail)
     ImageButton imageButton;
 
+    @Inject
+    DetailContract.DetailPresenter presenter;
+
     @Nullable
     private String movieId = null;
-    private MovieListModel viewModel;
-    private Set<String> setID = new HashSet<>();
     private boolean isClick = false;
-
-    private String titleMovie = null;
-    private String image = null;
-    private String overviewDet = null;
-    private SharedPreferences sharedPreferences;
-    private CompositeDisposable compositeDisposable;
     private Movie movie = null;
     private List<String> names = new ArrayList<>();
-    private DocumentReference firestoreDB = FirebaseFirestore.getInstance().collection("movie").document("movieData");
-    private Map<String, Movie> movieMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,10 +91,13 @@ public class MovieDetailsActivity extends AppCompatActivity
         setTitle(getString(R.string.detail_info));
         ButterKnife.bind(this);
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        compositeDisposable = new CompositeDisposable();
+        DaggerDetailActivityComponent.builder()
+                .movieComponent(MovieAppAplication.get(this).getMovieComponent())
+                .activityMovieModule(new ActivityMovieModule(this))
+                .mvpDetailModule(new MvpDetailModule(this))
+                .build()
+                .inject(this);
 
-        viewModel = ViewModelProviders.of(this).get(MovieListModel.class);
         Bundle bundle = getIntent().getExtras();
 
         if (bundle != null) {
@@ -134,10 +108,10 @@ public class MovieDetailsActivity extends AppCompatActivity
 
         }
 
-        subcribeOnUI();
+        presenter.subcribeOnUI();
         shoProgressBar();
         if (movieId != null) {
-            getMovieDetail(movieId);
+            presenter.getMovieDetail(movieId);
         }
 
         imageButton.setOnClickListener(this);
@@ -153,33 +127,13 @@ public class MovieDetailsActivity extends AppCompatActivity
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher));
             movie.setFavorite(true);
             interactionWithAdapter(movie);
-            if (FirebaseAuth.getInstance().getCurrentUser() != null)
-                addToFirebase(movie.getId(), movie);
-            else
-                viewModel.insertItem(movie);
+            presenter.addToBD(movie.getId(), movie);
 
         } else {
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
             movie.setFavorite(false);
             interactionWithAdapter(movie);
-            if (FirebaseAuth.getInstance().getCurrentUser() != null)
-                deleteFromFirebase(movie.getId());
-            else
-                viewModel.deleteByID(movieId);
-        }
-    }
-
-    private void subcribeOnUI() {
-
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            readFromFirebase();
-        } else {
-            compositeDisposable.add(viewModel.getItems()
-                    .subscribeOn(Schedulers.io())
-                    .flatMap(Flowable::fromIterable)
-                    .flatMapCompletable(this::addMovieIDToSet)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe());
+            presenter.deleteFromBD(movie);
         }
     }
 
@@ -189,51 +143,15 @@ public class MovieDetailsActivity extends AppCompatActivity
         init();
     }
 
-    private void deleteFromFirebase(String id) {
-
-        Map<String, Object> deleteMap = new HashMap<>();
-        deleteMap.put(id, FieldValue.delete());
-
-        firestoreDB.update(deleteMap).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Toast.makeText(MovieDetailsActivity.this, "Successfully deleted!",
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void addToFirebase(String id, Movie movie) {
-
-        movieMap.put(id, movie);
-
-        firestoreDB.set(movieMap, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Log.d("TAG", "DocumentSnapshot added with ID: ");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.w("TAG", "Error adding document", e);
-            }
-        });
-    }
-
-    private void init() {
-        if (setID.contains(movieId)) {
+    @Override
+    public void init() {
+        if (presenter.getID().contains(movieId)) {
             isClick = true;
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher));
         } else {
             isClick = false;
             imageButton.setBackground(getResources().getDrawable(R.drawable.ic_launcher_white));
         }
-    }
-
-    private Completable addMovieIDToSet(Movie movie) {
-        return Completable.fromAction(() -> {
-            setID.add(movie.getId());
-        });
     }
 
     @Override
@@ -268,32 +186,9 @@ public class MovieDetailsActivity extends AppCompatActivity
         setResult(1, intent);
     }
 
-    private void readFromFirebase() {
-        firestoreDB.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot snapshot = task.getResult();
-                    if (snapshot.exists()) {
-                        Map<Object, Object> map = new HashMap<>();
-                        map.putAll(snapshot.getData());
-
-                        for (Object obj : map.values()) {
-                            Gson gson = new Gson();
-                            JsonElement jsonElement = gson.toJsonTree(obj);
-                            Movie movieGson = gson.fromJson(jsonElement, Movie.class);
-                            setID.add(movieGson.getId());
-                        }
-                        init();
-                    }
-                }
-            }
-        });
-
-    }
-
-    private void shoProgressBar() {
-        Completable.timer(2, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
+    @Override
+    public void shoProgressBar() {
+        Completable.timer(1, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
                 .subscribe(() -> {
                     detailBar.setVisibility(View.GONE);
                     cardViewDet.setVisibility(View.VISIBLE);
@@ -301,54 +196,8 @@ public class MovieDetailsActivity extends AppCompatActivity
                 });
     }
 
-    private void getValueFromMovieDatils(MovieDetails movieDetails) {
-
-        image = movieDetails.getPoster();
-        overviewDet = movieDetails.getOverview();
-        titleMovie = movieDetails.getTitle();
-    }
-
-    private String getLanguage() {
-        String language = null;
-
-        int id = sharedPreferences.getInt("language", 0);
-        switch (id) {
-            case 0:
-                language = "en";
-                return language;
-            case 1:
-                language = "de";
-                return language;
-            case 2:
-                language = "ru";
-                return language;
-            default:
-                language = "en";
-                return language;
-        }
-    }
-
-    private void getMovieDetail(String id) {
-
-        Single<MovieDetails> detailsObservable = MovieRetrofit.getRetrofit().getMovieDetails(id, getLanguage())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(movieDetails -> {
-
-                    getValueFromMovieDatils(movieDetails);
-                    fillTextView(movieDetails);
-                })
-                .onErrorReturn(throwable -> {
-                    showError(throwable);
-                    return new MovieDetails();
-                });
-
-        Disposable disposable = detailsObservable.subscribe();
-
-        compositeDisposable.add(disposable);
-    }
-
-    private void fillTextView(MovieDetails responce) {
+    @Override
+    public void fillTextView(MovieDetails responce) {
         for (MovieDetails.MovieGenre genre : responce.getGenres()) {
             names.add(genre.getName());
         }
@@ -384,10 +233,8 @@ public class MovieDetailsActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        if (compositeDisposable != null)
-            compositeDisposable.clear();
-
         super.onDestroy();
+        presenter.onDestroy();
     }
 
     private void showFailView(String message) {
@@ -405,10 +252,11 @@ public class MovieDetailsActivity extends AppCompatActivity
         errorViewCard.setVisibility(View.INVISIBLE);
         cardViewDet.setVisibility(View.VISIBLE);
         cardViewDet2.setVisibility(View.VISIBLE);
-        getMovieDetail(movieId);
+        presenter.getMovieDetail(movieId);
     }
 
-    private void showError(Throwable throwable) {
+    @Override
+    public void showError(Throwable throwable) {
         HttpException httpException = (HttpException) throwable;
         Response response = httpException.response();
         ApiError errorMessage = ErrorUtil.parseError(response);

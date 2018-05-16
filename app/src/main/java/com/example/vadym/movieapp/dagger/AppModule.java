@@ -2,6 +2,8 @@ package com.example.vadym.movieapp.dagger;
 
 import android.app.Application;
 
+import com.example.vadym.movieapp.dagger.MovieAppAplication;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -12,15 +14,16 @@ import dagger.Provides;
  */
 @Module
 public class AppModule {
-    Application application;
+//    Application application;
+    private MovieAppAplication application;
 
-    public AppModule(Application application) {
+    public AppModule(MovieAppAplication application) {
         this.application = application;
     }
 
     @Provides
     @Singleton
-    Application getApplication() {
+    public Application getApplication() {
         return application;
     }
 }

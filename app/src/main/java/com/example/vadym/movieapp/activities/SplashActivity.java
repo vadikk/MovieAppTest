@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import com.example.vadym.movieapp.BuildConfig;
+
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
@@ -24,7 +26,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void showSplashByTime() {
-        Completable.timer(3, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
+        Completable.timer(BuildConfig.LOAD_TIME, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
                 .subscribe(() -> {
                     Intent intent = new Intent(this, MainActivity.class);
                     startActivity(intent);
